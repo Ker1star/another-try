@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, Response, abort, jsonify, request
 import requests
 
@@ -17,6 +19,15 @@ def _serialize_image_path(image_path):
     if image_path.startswith('http://') or image_path.startswith('https://') or image_path.startswith('/'):
         return [image_path]
     return [f'/static/{image_path}']
+
+
+def _authorize_internal_task():
+    cron_secret = os.getenv('CRON_SECRET')
+    if not cron_secret:
+        return True
+
+    auth_header = request.headers.get('Authorization', '')
+    return auth_header == f'Bearer {cron_secret}'
 
 
 @api_bp.route('/menu', methods=['GET'])
@@ -51,11 +62,29 @@ def menu_route():
 
 @api_bp.route('/update-menu', methods=['POST'])
 def update_menu_route():
+    if not _authorize_internal_task():
+        return jsonify({'error': 'Unauthorized'}), 401
+
     json_data = request.get_json(silent=True) or {}
     point_id = json_data.get('point_id', get_point_id())
     price_list_id = json_data.get('price_list_id', get_price_list_id())
     upsert_menu(point_id=point_id, price_list_id=price_list_id)
     return jsonify({'status': 'ok'})
+
+
+@api_bp.route('/tasks/sync-menu', methods=['GET'])
+def sync_menu_task():
+    if not _authorize_internal_task():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    point_id = get_point_id()
+    price_list_id = get_price_list_id()
+    upsert_menu(point_id=point_id, price_list_id=price_list_id)
+    return jsonify({
+        'status': 'ok',
+        'pointId': point_id,
+        'priceListId': price_list_id,
+    })
 
 
 @api_bp.route('/orders', methods=['POST'])
@@ -69,6 +98,11 @@ def create_order_route():
         return jsonify({'error': str(exc), 'details': exc.details}), exc.status_code
 
     return jsonify({'status': 'ok', 'order': result})
+
+
+@api_bp.route('/health', methods=['GET'])
+def health_route():
+    return jsonify({'status': 'ok'})
 
 
 @presto_bp.route('/img')

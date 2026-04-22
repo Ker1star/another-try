@@ -1,8 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python build.py",
   "functions": {
     "app.py": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "excludeFiles": "{.git/**,.venv/**,__pycache__/**,instance/**,migrations/**,app/static/**,public/**,VERCEL_DEPLOY.md}"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/tasks/sync-menu",
+      "schedule": "0 5 * * *"
+    }
+  ]
 }

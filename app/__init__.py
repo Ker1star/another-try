@@ -43,9 +43,21 @@ def _resolve_database_url():
     if database_url:
         return database_url
 
+    if os.getenv('VERCEL'):
+        raise RuntimeError('DATABASE_URL is required for Vercel deployments.')
+
     instance_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'instance', 'menu.db'))
     os.makedirs(os.path.dirname(instance_path), exist_ok=True)
     return f"sqlite:///{instance_path}"
+
+
+def _resolve_static_folder():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    public_static = os.path.join(project_root, 'public', 'static')
+    if os.path.isdir(public_static):
+        return public_static
+
+    return os.path.join(os.path.dirname(__file__), 'static')
 
 
 def _initialize_schema():
@@ -68,7 +80,8 @@ def _initialize_schema():
 def create_app():
     app = Flask(
         __name__,
-        static_folder=os.path.join(os.path.dirname(__file__), 'static'),
+        static_folder=_resolve_static_folder(),
+        static_url_path='/static',
         template_folder=os.path.join(os.path.dirname(__file__), 'templates')
     )
     app.config['SQLALCHEMY_DATABASE_URI'] = _resolve_database_url()

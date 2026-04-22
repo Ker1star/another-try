@@ -3,5 +3,4 @@ python-dotenv
 requests
 Flask-SQLAlchemy
 Flask-Migrate
-apscheduler
 psycopg2-binary
