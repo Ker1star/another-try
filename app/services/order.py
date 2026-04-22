@@ -2,7 +2,8 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 PRESTO_ORDER_URL = os.getenv('PRESTO_ORDER_URL', 'https://api.sbis.ru/retail/order/create')
 PRESTO_DELIVERY_COST_URL = os.getenv('PRESTO_DELIVERY_COST_URL', 'https://api.sbis.ru/retail/delivery/cost')
 ORDER_LEAD_MINUTES = int(os.getenv('ORDER_LEAD_MINUTES', '15'))
+ORDER_TIMEZONE = os.getenv('ORDER_TIMEZONE', 'Europe/Moscow')
+ORDER_FALLBACK_UTC_OFFSET_HOURS = int(os.getenv('ORDER_FALLBACK_UTC_OFFSET_HOURS', '3'))
 
 
 class PrestoOrderError(Exception):
@@ -34,6 +37,22 @@ def get_point_id():
 
 def get_price_list_id():
     return resolve_price_list_id()
+
+
+def _get_order_timezone():
+    try:
+        return ZoneInfo(ORDER_TIMEZONE)
+    except Exception:
+        logger.warning(
+            "Invalid ORDER_TIMEZONE=%s, falling back to UTC%+d",
+            ORDER_TIMEZONE,
+            ORDER_FALLBACK_UTC_OFFSET_HOURS,
+        )
+        return timezone(timedelta(hours=ORDER_FALLBACK_UTC_OFFSET_HOURS))
+
+
+def _now_in_order_timezone():
+    return datetime.now(_get_order_timezone())
 
 
 def _compact(data):
@@ -97,12 +116,17 @@ def _format_order_datetime(raw_value):
         except ValueError as exc:
             raise ValueError('Некорректная дата заказа.') from exc
 
-        if order_datetime <= datetime.now():
+        if order_datetime.tzinfo is None:
+            order_datetime = order_datetime.replace(tzinfo=_get_order_timezone())
+        else:
+            order_datetime = order_datetime.astimezone(_get_order_timezone())
+
+        if order_datetime <= _now_in_order_timezone():
             raise ValueError('Время заказа должно быть позже текущего.')
 
-        return order_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        return order_datetime.replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')
 
-    return (datetime.now() + timedelta(minutes=ORDER_LEAD_MINUTES)).strftime('%Y-%m-%d %H:%M:%S')
+    return (_now_in_order_timezone() + timedelta(minutes=ORDER_LEAD_MINUTES)).replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def _request_headers():
@@ -271,6 +295,12 @@ def build_order_payload(payload, *, base_url=None):
 
 def create_order(payload, *, base_url=None):
     order_payload = build_order_payload(payload, base_url=base_url)
+    logger.info(
+        "Sending order to Saby with datetime=%s timezone=%s local_now=%s",
+        order_payload.get('datetime'),
+        ORDER_TIMEZONE,
+        _now_in_order_timezone().isoformat(),
+    )
     try:
         response = requests.post(
             PRESTO_ORDER_URL,
