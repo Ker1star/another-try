@@ -84,20 +84,28 @@ def create_app():
         static_url_path='/static',
         template_folder=os.path.join(os.path.dirname(__file__), 'templates')
     )
-    app.config['SQLALCHEMY_DATABASE_URI'] = _resolve_database_url()
+    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY') or os.getenv('SECRET_KEY') or 'dev-secret-key'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
     }
-    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY') or os.getenv('SECRET_KEY') or 'dev-secret-key'
+    app.config['DATABASE_AVAILABLE'] = False
+    app.config['DATABASE_ERROR'] = None
 
-    db.init_app(app)
-    Migrate(app, db)
+    try:
+        app.config['SQLALCHEMY_DATABASE_URI'] = _resolve_database_url()
+        db.init_app(app)
+        Migrate(app, db)
 
-    with app.app_context():
-        from app import models  # noqa: F401
+        with app.app_context():
+            from app import models  # noqa: F401
 
-        _initialize_schema()
+            _initialize_schema()
+
+        app.config['DATABASE_AVAILABLE'] = True
+    except Exception as exc:
+        app.config['DATABASE_ERROR'] = str(exc)
+        app.logger.exception("Database initialization failed")
 
     from app.routes import api_bp, presto_bp
 

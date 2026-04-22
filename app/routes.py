@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, Response, abort, jsonify, request
+from flask import Blueprint, Response, abort, current_app, jsonify, request
 import requests
 
 from app.models import Category
@@ -30,8 +30,26 @@ def _authorize_internal_task():
     return auth_header == f'Bearer {cron_secret}'
 
 
+def _database_error_response():
+    return jsonify({
+        'error': 'Database is not available.',
+        'details': current_app.config.get('DATABASE_ERROR'),
+    }), 503
+
+
+def _require_database():
+    if current_app.config.get('DATABASE_AVAILABLE'):
+        return None
+
+    return _database_error_response()
+
+
 @api_bp.route('/menu', methods=['GET'])
 def menu_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
     data = []
     parents = Category.query.filter_by(parent_sbis_id=None).order_by(Category.name).all()
     for cat in parents:
@@ -62,6 +80,10 @@ def menu_route():
 
 @api_bp.route('/update-menu', methods=['POST'])
 def update_menu_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
     if not _authorize_internal_task():
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -74,6 +96,10 @@ def update_menu_route():
 
 @api_bp.route('/tasks/sync-menu', methods=['GET'])
 def sync_menu_task():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
     if not _authorize_internal_task():
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -89,6 +115,10 @@ def sync_menu_task():
 
 @api_bp.route('/orders', methods=['POST'])
 def create_order_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
     payload = request.get_json(silent=True) or {}
     try:
         result = create_order(payload, base_url=request.host_url.rstrip('/'))
@@ -102,7 +132,14 @@ def create_order_route():
 
 @api_bp.route('/health', methods=['GET'])
 def health_route():
-    return jsonify({'status': 'ok'})
+    database_available = current_app.config.get('DATABASE_AVAILABLE')
+    payload = {
+        'status': 'ok' if database_available else 'degraded',
+        'databaseAvailable': database_available,
+    }
+    if not database_available:
+        payload['databaseError'] = current_app.config.get('DATABASE_ERROR')
+    return jsonify(payload), 200 if database_available else 503
 
 
 @presto_bp.route('/img')
