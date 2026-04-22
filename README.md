@@ -17,7 +17,7 @@ By default the app uses a local SQLite database in `instance/menu.db`. For produ
 
 The repository is configured for Vercel's Python runtime:
 
-- `app.py` is the Vercel entrypoint
+- `server.py` is the Vercel entrypoint
 - `build.py` copies `app/static` into `public/static` before each deploy
 - `vercel.json` forces the `flask` framework preset, configures the build command and cron job
 - `GET /api/tasks/sync-menu` is protected by `CRON_SECRET`
@@ -49,7 +49,7 @@ Deployment steps:
 
 The default cron schedule is `0 5 * * *` in UTC. This is compatible with the Hobby plan. If you use a paid Vercel plan, you can change it to a more frequent schedule in `vercel.json`.
 
-Flask zero-config deployments on Vercel are not customized through `functions.app.py` in `vercel.json`. If you need to change duration or memory for the generated function, do it in the Vercel dashboard.
+Flask zero-config deployments on Vercel are not customized through `functions.server.py` in `vercel.json`. If you need to change duration or memory for the generated function, do it in the Vercel dashboard.
 
 ## Useful endpoints
 

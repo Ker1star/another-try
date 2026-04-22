@@ -2,7 +2,7 @@
 
 ## Files already prepared
 
-- `app.py` is the Vercel entrypoint
+- `server.py` is the Vercel entrypoint
 - `build.py` copies `app/static` into `public/static`
 - `vercel.json` forces the `flask` framework preset, configures the build command and cron
 - `DATABASE_URL` is used for Neon/Postgres
@@ -49,8 +49,8 @@ curl -H "Authorization: Bearer YOUR_CRON_SECRET" https://YOUR-PROJECT.vercel.app
 
 ## Function settings
 
-Flask zero-config deployments on Vercel are generated from `app.py` automatically.
-The `functions` block in `vercel.json` only applies to files inside `api/**`, so do not target `app.py` there.
+Flask zero-config deployments on Vercel are generated from `server.py` automatically.
+The `functions` block in `vercel.json` only applies to files inside `api/**`, so do not target `server.py` there.
 If you need to change timeout or memory, use the Vercel project dashboard settings for the generated function.
 
 ## Useful endpoints
