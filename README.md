@@ -19,7 +19,7 @@ The repository is configured for Vercel's Python runtime:
 
 - `app.py` is the Vercel entrypoint
 - `build.py` copies `app/static` into `public/static` before each deploy
-- `vercel.json` configures the build command and cron job
+- `vercel.json` forces the `flask` framework preset, configures the build command and cron job
 - `GET /api/tasks/sync-menu` is protected by `CRON_SECRET`
 
 Required environment variables:
@@ -44,7 +44,8 @@ Deployment steps:
 1. Push the repository to GitHub.
 2. Import the repository into Vercel.
 3. Add environment variables from `.env.example` in the Vercel project settings.
-4. Deploy to production.
+4. Ensure `Output Directory` is empty in Vercel project settings.
+5. Deploy to production.
 
 The default cron schedule is `0 5 * * *` in UTC. This is compatible with the Hobby plan. If you use a paid Vercel plan, you can change it to a more frequent schedule in `vercel.json`.
 

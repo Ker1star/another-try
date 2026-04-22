@@ -4,7 +4,7 @@
 
 - `app.py` is the Vercel entrypoint
 - `build.py` copies `app/static` into `public/static`
-- `vercel.json` configures the build command and cron
+- `vercel.json` forces the `flask` framework preset, configures the build command and cron
 - `DATABASE_URL` is used for Neon/Postgres
 - `/api/tasks/sync-menu` is a protected cron endpoint
 
@@ -28,7 +28,8 @@
 2. Import the repository into Vercel.
 3. In `Settings -> Environment Variables`, add all variables from `.env.example`.
 4. Set `CRON_SECRET` to a long random string.
-5. Deploy.
+5. In `Settings -> Build and Deployment`, make sure `Output Directory` is empty.
+6. Deploy.
 
 ## After first deploy
 
