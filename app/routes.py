@@ -131,6 +131,7 @@ def create_order_route():
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
     except PrestoOrderError as exc:
+        current_app.logger.error("Order create failed: %s | details=%s", exc, exc.details)
         return jsonify({'error': str(exc), 'details': exc.details}), exc.status_code
 
     return jsonify({'status': 'ok', 'order': result})

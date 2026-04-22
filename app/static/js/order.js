@@ -140,7 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ? result.details.error.details
           : typeof result.details?.error?.message === 'string'
             ? result.details.error.message
-            : '';
+            : typeof result.details?.raw === 'string'
+              ? result.details.raw
+              : typeof result.details?.requestError === 'string'
+                ? result.details.requestError
+                : '';
         throw new Error(details || result.error || 'Не удалось отправить заказ.');
       }
 

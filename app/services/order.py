@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 from datetime import datetime
@@ -12,6 +13,8 @@ from app.services.auth import auth as fetch_token
 from app.services.menu import upsert_menu
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 PRESTO_ORDER_URL = os.getenv('PRESTO_ORDER_URL', 'https://api.sbis.ru/retail/order/create')
 PRESTO_DELIVERY_COST_URL = os.getenv('PRESTO_DELIVERY_COST_URL', 'https://api.sbis.ru/retail/delivery/cost')
@@ -49,10 +52,15 @@ def _compact(data):
 
 def _extract_saby_error_message(response_data):
     if not isinstance(response_data, dict):
+        if isinstance(response_data, str):
+            return response_data
         return None
 
     error = response_data.get('error')
     if not isinstance(error, dict):
+        raw = response_data.get('raw')
+        if isinstance(raw, str) and raw.strip():
+            return raw.strip()
         return None
 
     return error.get('details') or error.get('message')
@@ -256,12 +264,20 @@ def build_order_payload(payload, *, base_url=None):
 
 def create_order(payload, *, base_url=None):
     order_payload = build_order_payload(payload, base_url=base_url)
-    response = requests.post(
-        PRESTO_ORDER_URL,
-        headers=_request_headers(),
-        json=order_payload,
-        timeout=30,
-    )
+    try:
+        response = requests.post(
+            PRESTO_ORDER_URL,
+            headers=_request_headers(),
+            json=order_payload,
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        logger.exception("Order request to Saby failed")
+        raise PrestoOrderError(
+            f'Не удалось отправить заказ в Saby: {exc}',
+            details={'requestError': str(exc)},
+            status_code=502,
+        ) from exc
 
     try:
         response_data = response.json()
@@ -269,6 +285,7 @@ def create_order(payload, *, base_url=None):
         response_data = {'raw': response.text}
 
     if response.status_code >= 400:
+        logger.error("Saby order create failed with status %s: %s", response.status_code, response_data)
         raise PrestoOrderError(
             _extract_saby_error_message(response_data) or 'Saby вернул ошибку при создании заказа.',
             details=response_data,
@@ -276,6 +293,7 @@ def create_order(payload, *, base_url=None):
         )
 
     if isinstance(response_data, dict) and response_data.get('error'):
+        logger.error("Saby order create returned error payload: %s", response_data)
         raise PrestoOrderError(
             _extract_saby_error_message(response_data) or 'Saby вернул ошибку при создании заказа.',
             details=response_data,
