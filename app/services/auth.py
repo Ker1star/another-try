@@ -5,34 +5,41 @@ from dotenv import load_dotenv
 from app.services.presto_config import get_point_id, get_price_list_id
 load_dotenv()
 
-PRESTO_BASE_URL = os.getenv('PRESTO_BASE_URL')
-app_client_id = os.getenv('APP_CLIENT_ID') 
-app_secret = os.getenv('APP_SECRET')             
-secret_key = os.getenv('SECRET_KEY')
-auth_url = os.getenv('AUTH_URL')
-
 _access_token = None
 _token_obtained_at = 0.0
 _token_ttl_seconds = 50 * 60  # SBIS tokens are typically valid for 1 hour; refresh a bit earlier
 
+
+def _get_auth_settings():
+    return {
+        'auth_url': os.getenv('AUTH_URL'),
+        'app_client_id': os.getenv('APP_CLIENT_ID'),
+        'app_secret': os.getenv('APP_SECRET'),
+        'secret_key': os.getenv('SECRET_KEY') or os.getenv('FLASK_SECRET_KEY'),
+    }
+
 def auth():
     """Return cached SBIS access token or request a new one."""
     global _access_token, _token_obtained_at
+    settings = _get_auth_settings()
 
-    if not auth_url or not app_client_id or not app_secret or not secret_key:
-        raise RuntimeError("SBIS auth env vars are not configured: AUTH_URL, APP_CLIENT_ID, APP_SECRET, SECRET_KEY")
+    if not settings['auth_url'] or not settings['app_client_id'] or not settings['app_secret'] or not settings['secret_key']:
+        raise RuntimeError(
+            "SBIS auth env vars are not configured: AUTH_URL, APP_CLIENT_ID, APP_SECRET, SECRET_KEY "
+            "(or FLASK_SECRET_KEY as fallback)"
+        )
 
     now = time.time()
     if _access_token and (now - _token_obtained_at) < _token_ttl_seconds:
         return _access_token
 
     response = requests.post(
-        auth_url,
+        settings['auth_url'],
         headers={'Content-Type': 'application/json'},
         json={
-            "app_client_id": app_client_id,
-            "app_secret": app_secret,
-            "secret_key": secret_key
+            "app_client_id": settings['app_client_id'],
+            "app_secret": settings['app_secret'],
+            "secret_key": settings['secret_key']
         },
         timeout=15,
     )

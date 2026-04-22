@@ -90,7 +90,10 @@ def update_menu_route():
     json_data = request.get_json(silent=True) or {}
     point_id = json_data.get('point_id', get_point_id())
     price_list_id = json_data.get('price_list_id', get_price_list_id())
-    upsert_menu(point_id=point_id, price_list_id=price_list_id)
+    try:
+        upsert_menu(point_id=point_id, price_list_id=price_list_id)
+    except Exception as exc:
+        return jsonify({'error': str(exc)}), 500
     return jsonify({'status': 'ok'})
 
 
@@ -105,7 +108,10 @@ def sync_menu_task():
 
     point_id = get_point_id()
     price_list_id = get_price_list_id()
-    upsert_menu(point_id=point_id, price_list_id=price_list_id)
+    try:
+        upsert_menu(point_id=point_id, price_list_id=price_list_id)
+    except Exception as exc:
+        return jsonify({'error': str(exc)}), 500
     return jsonify({
         'status': 'ok',
         'pointId': point_id,
