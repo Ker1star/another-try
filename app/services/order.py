@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 from dotenv import load_dotenv
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 PRESTO_ORDER_URL = os.getenv('PRESTO_ORDER_URL', 'https://api.sbis.ru/retail/order/create')
 PRESTO_DELIVERY_COST_URL = os.getenv('PRESTO_DELIVERY_COST_URL', 'https://api.sbis.ru/retail/delivery/cost')
+ORDER_LEAD_MINUTES = int(os.getenv('ORDER_LEAD_MINUTES', '15'))
 
 
 class PrestoOrderError(Exception):
@@ -92,10 +93,16 @@ def _build_address_full(payload):
 def _format_order_datetime(raw_value):
     if raw_value:
         try:
-            return datetime.fromisoformat(raw_value).strftime('%Y-%m-%d %H:%M:%S')
+            order_datetime = datetime.fromisoformat(raw_value)
         except ValueError as exc:
             raise ValueError('Некорректная дата заказа.') from exc
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        if order_datetime <= datetime.now():
+            raise ValueError('Время заказа должно быть позже текущего.')
+
+        return order_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+    return (datetime.now() + timedelta(minutes=ORDER_LEAD_MINUTES)).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def _request_headers():
