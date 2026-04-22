@@ -4,7 +4,7 @@
 
 - `app.py` is the Vercel entrypoint
 - `build.py` copies `app/static` into `public/static`
-- `vercel.json` configures the build command, function duration and cron
+- `vercel.json` configures the build command and cron
 - `DATABASE_URL` is used for Neon/Postgres
 - `/api/tasks/sync-menu` is a protected cron endpoint
 
@@ -45,6 +45,12 @@ curl -H "Authorization: Bearer YOUR_CRON_SECRET" https://YOUR-PROJECT.vercel.app
 - Current default schedule: `0 5 * * *` in UTC
 - This schedule is chosen to stay compatible with the Vercel Hobby plan
 - If you use a paid Vercel plan, you can increase the frequency later
+
+## Function settings
+
+Flask zero-config deployments on Vercel are generated from `app.py` automatically.
+The `functions` block in `vercel.json` only applies to files inside `api/**`, so do not target `app.py` there.
+If you need to change timeout or memory, use the Vercel project dashboard settings for the generated function.
 
 ## Useful endpoints
 
