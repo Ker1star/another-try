@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Оформление заказа — Marta</title>
+  <meta name="description" content="Оформление доставки из ресторана Марта в Сыктывкаре.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}">Главная</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="{{ url_for('order_page') }}" class="active">Заказ</a>
+          <a href="{{ url_for('index') }}#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="{{ url_for('menu_page') }}" class="button-secondary">Вернуться в меню</a>
+          <a href="tel:+78212291247" class="button">Позвонить</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('order_page') }}">Заказ</a>
+        <a href="{{ url_for('index') }}#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <a href="{{ url_for('menu_page') }}" class="button">Вернуться в меню</a>
+        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+      </div>
+    </aside>
+
+    <main class="order-main">
+      <section class="page-hero">
+        <div class="container">
+          <div class="page-card reveal">
+            <div class="page-card-grid">
+              <div class="page-copy">
+                <span class="eyebrow">Оформление Marta</span>
+                <h1 class="section-title">Короткий checkout без лишних полей и ненужных шагов.</h1>
+                <p class="lead">
+                  Заполните контактные данные, проверьте корзину и отправьте заказ. Сценарий собран так, чтобы вы не искали глазами главное и не теряли темп.
+                </p>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box">
+                  <strong>Оплата</strong>
+                  <span>Наличными или картой курьеру.</span>
+                </div>
+                <div class="stat-box">
+                  <strong>Прямая интеграция</strong>
+                  <span>Заказ сразу уходит в Saby Presto.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="container">
+        <div class="order-layout">
+          <article class="order-card reveal">
+            <h2>Данные для доставки</h2>
+            <form id="orderForm" novalidate>
+              <div class="order-form-grid">
+                <div class="field">
+                  <label for="customerName">Имя</label>
+                  <input type="text" id="customerName" name="customerName" placeholder="Как к вам обращаться" required>
+                </div>
+                <div class="field">
+                  <label for="phone">Телефон</label>
+                  <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+                <div class="field">
+                  <label for="city">Город</label>
+                  <input type="text" id="city" name="city" value="Сыктывкар" required>
+                </div>
+                <div class="field">
+                  <label for="street">Улица</label>
+                  <input type="text" id="street" name="street" placeholder="Например, Сысольское шоссе" required>
+                </div>
+                <div class="field">
+                  <label for="house">Дом</label>
+                  <input type="text" id="house" name="house" placeholder="1" required>
+                </div>
+                <div class="field">
+                  <label for="apartment">Квартира / офис</label>
+                  <input type="text" id="apartment" name="apartment" placeholder="Если нужно" required>
+                </div>
+                <div class="field">
+                  <label for="paymentType">Способ оплаты</label>
+                  <select id="paymentType" name="paymentType" required>
+                    <option value="cash">Наличными курьеру</option>
+                    <option value="card">Картой курьеру</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="changeAmount" id="changeAmountLabel">С какой суммы подготовить сдачу</label>
+                  <input type="number" id="changeAmount" name="changeAmount" min="0" step="1" placeholder="Например, 3000">
+                </div>
+                <div class="field full">
+                  <label for="comment">Комментарий к заказу</label>
+                  <textarea id="comment" name="comment" placeholder="Подъезд, этаж, код домофона или пожелания"></textarea>
+                </div>
+              </div>
+
+              <div id="orderMessage" class="message-box" hidden></div>
+
+              <div class="order-actions">
+                <button type="submit" class="button" id="submitOrder" disabled>Отправить заказ</button>
+                <a href="{{ url_for('menu_page') }}" class="button-secondary">Вернуться к блюдам</a>
+              </div>
+            </form>
+          </article>
+
+          <aside class="order-card reveal delay-1">
+            <h2>Ваш заказ</h2>
+            <div id="orderSummary" hidden>
+              <ul id="orderItemsList" class="order-summary-list"></ul>
+              <div class="summary-total">
+                <span>Итого</span>
+                <strong id="orderTotal">0 ₽</strong>
+              </div>
+              <p class="summary-note">
+                После отправки заказ сразу передаётся в систему ресторана. Если нужен быстрый ответ, позвоните по номеру
+                <a href="tel:+78212291247">+7 (8212) 29-12-47</a>.
+              </p>
+            </div>
+            <div id="orderSummaryEmpty" class="menu-empty">
+              Корзина пока пуста. Вернитесь в меню и добавьте блюда перед оформлением заказа.
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/order.js') }}" defer></script>
+</body>
+</html>

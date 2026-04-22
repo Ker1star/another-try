@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Меню — Marta</title>
+  <meta name="description" content="Актуальное меню ресторана Марта: доставка и заказ онлайн в Сыктывкаре.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}">Главная</a>
+          <a href="{{ url_for('menu_page') }}" class="active">Меню</a>
+          <a href="{{ url_for('index') }}#space">Пространство</a>
+          <a href="{{ url_for('index') }}#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button id="cartBtn" class="button-secondary" type="button">
+            Корзина
+            <span id="cartCount" class="cart-badge">0</span>
+          </button>
+          <a href="{{ url_for('order_page') }}" class="button">Оформить</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('index') }}#space">Пространство</a>
+        <a href="{{ url_for('index') }}#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <button id="cartBtnMobile" class="button-secondary" type="button">Открыть корзину</button>
+        <a href="{{ url_for('order_page') }}" class="button">К заказу</a>
+      </div>
+    </aside>
+
+    <main class="menu-main">
+      <section class="page-hero">
+        <div class="container">
+          <div class="page-card reveal">
+            <div class="page-card-grid">
+              <div class="page-copy">
+                <span class="eyebrow">Меню Marta</span>
+                <h1 class="section-title">Актуальные блюда без лишнего шума и перегруженной навигации.</h1>
+                <p class="lead">
+                  Быстрый выбор, чистые карточки, понятные категории и спокойная корзина. Всё собрано так, чтобы не мешать решению, а ускорять его.
+                </p>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box">
+                  <strong>Доставка и самовывоз</strong>
+                  <span>Один сценарий выбора без лишних экранов.</span>
+                </div>
+                <div class="stat-box">
+                  <strong>Актуальные позиции</strong>
+                  <span>Меню загружается напрямую из системы ресторана.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="container">
+        <nav class="menu-nav reveal delay-1" aria-label="Категории меню">
+          <ul id="catTabs"></ul>
+        </nav>
+
+        <div id="menuContainer" class="menu-container"></div>
+      </section>
+    </main>
+
+    <div id="cartOverlay" class="cart-overlay"></div>
+    <aside id="cartSidebar" class="cart-sidebar" aria-label="Корзина">
+      <header>
+        <div>
+          <h3>Корзина</h3>
+          <p>Проверьте состав и переходите к оформлению.</p>
+        </div>
+        <button class="close-btn" id="closeCart" type="button" aria-label="Закрыть корзину">×</button>
+      </header>
+      <ul id="cartList"></ul>
+      <div class="cart-total">
+        <span>Итого</span>
+        <strong id="cartTotal">0 ₽</strong>
+      </div>
+      <button class="button btn-checkout" id="checkoutBtn" type="button" disabled>Перейти к заказу</button>
+    </aside>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-shell">
+          <div>
+            <h2>Marta</h2>
+            <p>Онлайн-меню, собранное так же спокойно и аккуратно, как сам ресторан.</p>
+          </div>
+          <div>
+            <h3>Навигация</h3>
+            <p><a href="{{ url_for('index') }}">Главная</a></p>
+            <p><a href="{{ url_for('order_page') }}">Оформление заказа</a></p>
+          </div>
+          <div>
+            <h3>Контакты</h3>
+            <p><a href="tel:+78212291247">+7 (8212) 29-12-47</a></p>
+            <p>Сыктывкар, Сысольское ш., 1</p>
+          </div>
+        </div>
+        <div class="footer-meta">
+          <span>© 2026 Marta</span>
+          <span>Delivery menu</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const MENU_API_URL = "{{ url_for('api.menu_route') }}";
+  </script>
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
+</body>
+</html>

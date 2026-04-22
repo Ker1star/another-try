@@ -1,0 +1,129 @@
+<!-- order.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Оформление заказа — El Gusto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .order-container { max-width:560px; margin:3rem auto; padding:2.5rem; background:var(--color-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); border:1px solid rgba(229,231,235,0.7); }
+    .order-container h1 { text-align:center; margin-bottom:1.5rem; font-family:var(--font-serif); color:var(--color-text); }
+    .order-summary { margin-bottom:2rem; border:1px solid rgba(229,231,235,0.8); padding:1.25rem; border-radius:18px; background:var(--color-surface-muted); }
+    .order-summary h2 { text-align:center; font-family:var(--font-serif); margin-bottom:.75rem; }
+    .order-summary ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.6rem; }
+    .order-summary li { display:flex; justify-content:space-between; padding:.6rem .25rem; border-bottom:1px solid rgba(229,231,235,0.6); font-size:.95rem; color:var(--color-text); }
+    .order-summary li:last-child { border-bottom:none; }
+    .order-summary .total { text-align:right; font-weight:600; margin-top:1rem; font-size:1.05rem; }
+    .order-form { display:flex; flex-direction:column; gap:1rem; }
+    .order-form label { display:block; font-weight:600; color:var(--color-text); }
+    .order-form input, .order-form textarea { width:100%; padding:.65rem .75rem; margin-top:.35rem; border:1px solid rgba(209,213,219,0.9); border-radius:12px; background:var(--color-surface-muted); transition:border-color .2s ease, background .2s ease; }
+    .order-form input:focus, .order-form textarea:focus { outline:none; border-color:var(--color-accent); background:#fff; }
+    .order-form textarea { resize:vertical; min-height:100px; }
+    .order-form .btn-submit { width:100%; margin-top:.5rem; padding:.85rem; background:var(--color-accent); color:#fff; border:none; border-radius:12px; font-weight:600; cursor:pointer; box-shadow:0 18px 35px rgba(91,141,239,0.22); transition:transform .2s ease, box-shadow .25s ease; }
+    .order-form .btn-submit:hover { transform:translateY(-2px); box-shadow:0 22px 45px rgba(91,141,239,0.28); }
+    .order-form .btn-submit:disabled { background:rgba(148,163,184,0.6); cursor:not-allowed; box-shadow:none; }
+    .order-back-link { display:block; text-align:center; margin-top:1.5rem; color:var(--color-accent); font-weight:600; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="/static/images/logo-heart.jpg" alt="El Gusto">
+        <span>El Gusto</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html">Главная</a>
+        <a href="menu.html">Меню</a>
+        <a href="index.html#about">О нас</a>
+        <a href="index.html#contacts">Контакты</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="menu.html" class="btn btn-primary">Вернуться в меню</a>
+      </div>
+      <button class="hamburger" type="button" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-nav">
+    <a href="index.html">Главная</a>
+    <a href="menu.html">Меню</a>
+    <a href="index.html#about">О нас</a>
+    <a href="index.html#contacts">Контакты</a>
+  </nav>
+
+  <main class="order-container">
+    <h1 data-aos="fade-down" data-aos-duration="800">Оформление заказа</h1>
+
+    <div id="orderSummary" class="order-summary" hidden>
+      <h2>Ваш заказ</h2>
+      <ul id="orderItemsList"></ul>
+      <div class="total">Итого: <span id="orderTotal"></span> ₽</div>
+    </div>
+
+    <form id="orderForm" class="order-form" novalidate>
+      <label for="customerName">Имя <span style="color:red">*</span></label>
+      <input type="text" id="customerName" name="customerName" required />
+
+      <label for="phone">Телефон <span style="color:red">*</span></label>
+      <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required />
+
+      <label for="street">Улица <span style="color:red">*</span></label>
+      <input type="text" id="street" name="street" required />
+
+      <label for="house">Дом <span style="color:red">*</span></label>
+      <input type="text" id="house" name="house" required />
+
+      <label for="apartment">Квартира <span style="color:red">*</span></label>
+      <input type="text" id="apartment" name="apartment" required />
+
+      <label for="comment">Комментарий</label>
+      <textarea id="comment" name="comment"></textarea>
+
+      <button type="submit" class="btn-submit" disabled>Отправить заказ</button>
+    </form>
+
+    <a href="menu.html" class="order-back-link">← Вернуться в меню</a>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-block">
+        <h2>El Gusto</h2>
+        <p>Бережно доставим к вашему столу блюда из печи и авторские десерты.</p>
+      </div>
+      <div class="footer-block">
+        <h2>Контакты</h2>
+        <p><a href="tel:+74951234567">+7 (495) 123-45-67</a></p>
+        <p><a href="mailto:info@elgusto.ru">info@elgusto.ru</a></p>
+      </div>
+      <div class="footer-block">
+        <h2>Навигация</h2>
+        <p><a href="menu.html">Меню</a></p>
+        <p><a href="index.html#reserve">Бронирование</a></p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2025 El Gusto — Средиземноморское кафе</div>
+  </footer>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ once: true });
+      const btn = document.querySelector('.hamburger');
+      const nav = document.querySelector('.mobile-nav');
+      if (btn && nav) {
+        btn.addEventListener('click', () => {
+          nav.classList.toggle('open');
+          btn.classList.toggle('active');
+        });
+      }
+    });
+    window.API_BASE = '';
+  </script>
+</body>
+</html>

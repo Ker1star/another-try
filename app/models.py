@@ -1,0 +1,28 @@
+from datetime import datetime
+from app import db
+
+class Category(db.Model):
+    __tablename__ = 'categories'
+    id = db.Column(db.Integer, primary_key=True)
+    sbis_id = db.Column(db.Integer, unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    parent_sbis_id = db.Column(db.Integer, db.ForeignKey('categories.sbis_id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class MenuItem(db.Model):
+    __tablename__ = 'menu_items'
+    id = db.Column(db.Integer, primary_key=True)
+    sbis_id = db.Column(db.Integer, unique=True, nullable=False)
+    presto_id = db.Column(db.Integer, nullable=True)
+    external_id = db.Column(db.String(64), nullable=True)
+    nom_number = db.Column(db.String(128), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    out_quantity = db.Column(db.String(50), nullable=True)
+    description_simple = db.Column(db.Text, nullable=True)
+    image_path = db.Column(db.String(512), nullable=True)
+    price = db.Column(db.Numeric(10,2), nullable=True)
+    published = db.Column(db.Boolean, default=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    category = db.relationship('Category', backref='items')

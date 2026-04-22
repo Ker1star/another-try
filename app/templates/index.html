@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Марта — ресторан и доставка в Сыктывкаре</title>
+  <meta name="description" content="Марта — тёплый городской ресторан в Сыктывкаре с доставкой, спокойной атмосферой и актуальным меню онлайн.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}" class="active">Главная</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="#space">Пространство</a>
+          <a href="#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="tel:+78212291247" class="button-ghost">+7 (8212) 29-12-47</a>
+          <a href="{{ url_for('menu_page') }}" class="button">Заказать</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="#space">Пространство</a>
+        <a href="#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <a href="{{ url_for('menu_page') }}" class="button">Открыть меню</a>
+        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+      </div>
+    </aside>
+
+    <main>
+      <section class="section hero">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <span class="eyebrow">Сыктывкар • Сысольское ш., 1</span>
+            <h1 class="display-title">Ресторан с тёплым светом, спокойной подачей и удобной доставкой.</h1>
+            <p class="hero-lead lead">
+              «Марта» собрана как хорошее городское место: без лишнего визуального шума, с понятным меню, камерной атмосферой и цифровым заказом, который не раздражает.
+            </p>
+            <div class="hero-actions">
+              <a href="{{ url_for('menu_page') }}" class="button">Смотреть меню</a>
+              <a href="#visit" class="button-secondary">Контакты</a>
+            </div>
+            <div class="hero-facts">
+              <div class="fact-card">
+                <strong>Ежедневно</strong>
+                <span>с 12:00 до 23:00</span>
+              </div>
+              <div class="fact-card">
+                <strong>Доставка</strong>
+                <span>по городу и самовывоз</span>
+              </div>
+              <div class="fact-card">
+                <strong>Телефон</strong>
+                <span>+7 (8212) 29-12-47</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visuals reveal delay-1">
+            <article class="frame frame-hero">
+              <img src="{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}" alt="Интерьер ресторана Марта">
+              <div class="frame-note">
+                <strong>Кирпич, дерево, кожа, мягкий свет</strong>
+                <span>Интерьер с характером, но без тяжести и визуального давления.</span>
+              </div>
+            </article>
+            <div class="frame-row">
+              <article class="frame">
+                <img src="{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}" alt="Барная стойка ресторана Марта">
+              </article>
+              <article class="frame">
+                <img src="{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}" alt="Меню ресторана Марта">
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section compact" id="space">
+        <div class="container split-layout">
+          <article class="panel reveal">
+            <span class="eyebrow">Подход</span>
+            <h2 class="panel-title">Меньше декора. Больше ритма, воздуха и уверенности.</h2>
+            <p class="lead">
+              Хороший ресторанный сайт не развлекает анимациями и не спорит с меню. Он быстро даёт понять атмосферу места, помогает выбрать блюдо и не ломает темп заказа.
+            </p>
+            <div class="signature-list">
+              <div class="signature-item">
+                <strong>Простой маршрут</strong>
+                <span>Главная, меню, корзина и checkout собраны в один понятный сценарий.</span>
+              </div>
+              <div class="signature-item">
+                <strong>Живая, но тихая анимация</strong>
+                <span>Переходы добавляют глубину, а не создают лишний шум.</span>
+              </div>
+              <div class="signature-item">
+                <strong>Атмосфера ресторана</strong>
+                <span>Тёплая палитра и тактильные материалы вместо кричащих акцентов.</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel media-panel reveal delay-1">
+            <img src="{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}" alt="Зал ресторана Марта">
+            <div class="panel-content">
+              <span class="eyebrow">Пространство</span>
+              <h2 class="panel-title">Локальное место, в котором хочется задержаться.</h2>
+              <p class="lead">Не витрина и не шумный лофт, а спокойный ресторан для ужина, встреч и длинных разговоров.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section compact">
+        <div class="container gallery-ribbon">
+          <article class="panel reveal">
+            <span class="eyebrow">Меню и доставка</span>
+            <h2 class="panel-title">Онлайн-заказ должен работать так же аккуратно, как сервис в зале.</h2>
+            <p class="lead">
+              Актуальные позиции, понятные категории, чистые карточки блюд и корзина без перегрузки. Всё важное видно сразу, без лишних переходов и декоративных препятствий.
+            </p>
+            <div class="hero-actions">
+              <a href="{{ url_for('menu_page') }}" class="button">Перейти к меню</a>
+              <a href="{{ url_for('order_page') }}" class="button-secondary">Оформить заказ</a>
+            </div>
+          </article>
+          <div class="gallery-stack reveal delay-1">
+            <article class="frame">
+              <img src="{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}" alt="Винная полка в ресторане Марта">
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section compact" id="visit">
+        <div class="container reserve-layout">
+          <article class="panel reveal">
+            <span class="eyebrow">Контакты</span>
+            <h2 class="panel-title">Забронировать стол или оформить доставку.</h2>
+            <p class="lead">
+              Для брони и уточнений проще всего позвонить. Для доставки и самовывоза переходите в онлайн-меню.
+            </p>
+            <div class="contact-list">
+              <div class="contact-item">
+                <span>Телефон</span>
+                <a href="tel:+78212291247"><strong>+7 (8212) 29-12-47</strong></a>
+              </div>
+              <div class="contact-item">
+                <span>Адрес</span>
+                <strong>Сыктывкар, Сысольское ш., 1</strong>
+              </div>
+              <div class="contact-item">
+                <span>График</span>
+                <strong>Ежедневно с 12:00 до 23:00</strong>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <a href="{{ url_for('menu_page') }}" class="button">Открыть меню</a>
+              <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+            </div>
+          </article>
+
+          <article class="map-card reveal delay-1">
+            <div id="yandex-map" class="map-frame" aria-label="Карта ресторана Марта"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-shell">
+          <div>
+            <h2>Marta</h2>
+            <p>Городской ресторан с камерной атмосферой и доставкой без лишней сложности.</p>
+          </div>
+          <div>
+            <h3>Навигация</h3>
+            <p><a href="{{ url_for('menu_page') }}">Меню</a></p>
+            <p><a href="#space">Пространство</a></p>
+            <p><a href="#visit">Контакты</a></p>
+          </div>
+          <div>
+            <h3>Связаться</h3>
+            <p><a href="tel:+78212291247">+7 (8212) 29-12-47</a></p>
+            <p>Сыктывкар, Сысольское ш., 1</p>
+          </div>
+        </div>
+        <div class="footer-meta">
+          <span>© 2026 Marta</span>
+          <span>Restaurant • delivery</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" defer></script>
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+  <script>
+    function initMap() {
+      const map = new ymaps.Map('yandex-map', {
+        center: [61.65957, 50.83392],
+        zoom: 16,
+        controls: ['zoomControl']
+      });
+
+      const placemark = new ymaps.Placemark(
+        [61.65957, 50.83392],
+        {
+          balloonContent: 'Марта — Сыктывкар, Сысольское ш., 1'
+        },
+        {
+          iconColor: '#a24533'
+        }
+      );
+
+      map.geoObjects.add(placemark);
+      map.behaviors.disable('scrollZoom');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.ymaps) {
+        ymaps.ready(initMap);
+      }
+    });
+  </script>
+</body>
+</html>
