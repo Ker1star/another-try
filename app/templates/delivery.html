@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
-<body>
+<body class="delivery-page">
   <div class="page-shell">
     <div class="mobile-backdrop"></div>
 
@@ -21,14 +21,15 @@
           <span class="brand-mark">M</span>
           <span class="brand-copy">
             <strong>Marta</strong>
-            <span>ресторан • доставка</span>
+            <span>restaurant • delivery</span>
           </span>
         </a>
 
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}">Главная</a>
-          <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
           <a href="{{ url_for('delivery_page') }}" class="active">Доставка</a>
+          <a href="{{ url_for('index') }}#space">Пространство</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
 
@@ -49,8 +50,9 @@
     <aside class="mobile-nav" aria-label="Мобильная навигация">
       <nav class="mobile-nav-links">
         <a href="{{ url_for('index') }}">Главная</a>
-        <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
         <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('index') }}#space">Пространство</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">
@@ -66,20 +68,10 @@
             <div class="page-card-grid">
               <div class="page-copy">
                 <span class="eyebrow">Меню доставки Marta</span>
-                <h1 class="section-title">Здесь только те позиции, которые доступны для доставки или самовывоза.</h1>
+                <h1 class="section-title">Выберите блюда для доставки или самовывоза.</h1>
                 <p class="lead">
-                  Страница доставки отделена от ресторанного меню, чтобы корзина, заказ и ассортимент не мешали друг другу. Всё, что нельзя или не стоит везти, можно убрать отсюда отдельно.
+                  Здесь только позиции, которые можно заказать домой. Добавьте блюда в корзину и переходите к оформлению.
                 </p>
-              </div>
-              <div class="stat-row">
-                <div class="stat-box">
-                  <strong>Только доставка</strong>
-                  <span>Показываем сокращённое меню, подходящее для заказа онлайн.</span>
-                </div>
-                <div class="stat-box">
-                  <strong>Быстрое оформление</strong>
-                  <span>Выберите блюда, проверьте корзину и переходите к подтверждению заказа.</span>
-                </div>
               </div>
             </div>
           </div>
@@ -121,7 +113,7 @@
           </div>
           <div>
             <h3>Навигация</h3>
-            <p><a href="{{ url_for('menu_page') }}">Меню ресторана</a></p>
+            <p><a href="{{ url_for('menu_page') }}">Меню</a></p>
             <p><a href="{{ url_for('order_page') }}">Оформление заказа</a></p>
           </div>
           <div>

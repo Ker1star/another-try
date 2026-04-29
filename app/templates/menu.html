@@ -27,7 +27,7 @@
 
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}">Главная</a>
-          <a href="{{ url_for('menu_page') }}" class="active">Меню ресторана</a>
+          <a href="{{ url_for('menu_page') }}" class="active">Меню</a>
           <a href="{{ url_for('delivery_page') }}">Доставка</a>
           <a href="{{ url_for('index') }}#space">Пространство</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
@@ -47,7 +47,7 @@
     <aside class="mobile-nav" aria-label="Мобильная навигация">
       <nav class="mobile-nav-links">
         <a href="{{ url_for('index') }}">Главная</a>
-        <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
         <a href="{{ url_for('delivery_page') }}">Доставка</a>
         <a href="{{ url_for('index') }}#space">Пространство</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
@@ -67,18 +67,8 @@
                 <span class="eyebrow">Ресторанное меню Marta</span>
                 <h1 class="section-title">Большая витрина блюд с фото, ценами и спокойным выбором.</h1>
                 <p class="lead">
-                  Здесь весь опубликованный ассортимент ресторана. Позиции, которые можно привезти домой, отмечены отдельно и ведут на страницу доставки.
+                  Здесь весь опубликованный ассортимент ресторана без корзины и лишних кнопок. Для заказа домой используйте отдельную страницу доставки.
                 </p>
-              </div>
-              <div class="stat-row">
-                <div class="stat-box">
-                  <strong>Меню зала</strong>
-                  <span>Показываем основной каталог без корзины и лишнего сценария оформления.</span>
-                </div>
-                <div class="stat-box">
-                  <strong>Доставка отдельно</strong>
-                  <span>Не все блюда хорошо доезжают, поэтому заказ вынесен в отдельную витрину.</span>
-                </div>
               </div>
             </div>
           </div>
@@ -124,7 +114,6 @@
     const MENU_API_URL = "{{ url_for('api.menu_route') }}?mode=restaurant";
     const MENU_MODE = "restaurant";
     const MENU_INTERACTIVE = false;
-    const DELIVERY_PAGE_URL = "{{ url_for('delivery_page') }}";
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>

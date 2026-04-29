@@ -143,16 +143,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           action.textContent = 'Добавить в корзину';
           action.addEventListener('click', () => addToCart(dish));
           info.appendChild(action);
-        } else {
-          const action = document.createElement('a');
-          action.className = dish.availableForDelivery ? 'button-secondary' : 'button-ghost';
-          action.href = dish.availableForDelivery ? `${window.DELIVERY_PAGE_URL}#${sectionId}` : '#';
-          action.textContent = dish.availableForDelivery ? 'Есть в доставке' : 'Только в ресторане';
-          if (!dish.availableForDelivery) {
-            action.setAttribute('aria-disabled', 'true');
-            action.addEventListener('click', event => event.preventDefault());
-          }
-          info.appendChild(action);
         }
 
         card.append(media, info);
