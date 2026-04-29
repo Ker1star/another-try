@@ -1,3 +1,4 @@
+import logging
 import os
 from urllib.parse import quote
 
@@ -5,6 +6,8 @@ from app import db
 from app.models import Category, MenuItem
 from app.services.auth import get_menu as fetch_sbis_menu
 from app.services.presto_config import get_point_id, get_price_list_id
+
+logger = logging.getLogger(__name__)
 
 
 def _default_delivery_available() -> bool:
@@ -102,4 +105,4 @@ def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
         existing_items[sbis_id] = item
 
     db.session.commit()
-    print(f"[DONE] Updated menu: {len(existing_items)} items, {len(existing_cats)} categories.")
+    logger.info("Menu sync complete: %d items, %d categories.", len(existing_items), len(existing_cats))

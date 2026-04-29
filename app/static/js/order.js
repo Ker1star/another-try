@@ -20,18 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!text) {
       messageBox.hidden = true;
       messageBox.textContent = '';
-      messageBox.style.padding = '';
+      messageBox.classList.remove('message-box--error', 'message-box--success');
       return;
     }
 
-    const isError = type === 'error';
     messageBox.hidden = false;
     messageBox.textContent = text;
-    messageBox.style.color = isError ? '#f2d7d0' : '#e5f4dd';
-    messageBox.style.background = isError ? 'rgba(168, 76, 58, 0.18)' : 'rgba(92, 129, 84, 0.18)';
-    messageBox.style.border = `1px solid ${isError ? 'rgba(216, 134, 117, 0.32)' : 'rgba(136, 187, 135, 0.32)'}`;
-    messageBox.style.borderRadius = '16px';
-    messageBox.style.padding = '14px 16px';
+    messageBox.classList.toggle('message-box--error', type === 'error');
+    messageBox.classList.toggle('message-box--success', type === 'success');
   };
 
   const toggleChangeAmount = () => {

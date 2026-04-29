@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     usedSlugs.set(base, count + 1);
     return count ? `${base}-${count + 1}` : base;
   };
+  const NAV_OFFSET = 128;
   const menuConfig = window.MARTA_MENU_CONFIG || {};
   const interactiveMode = menuConfig.interactive === true;
   const menuMode = menuConfig.mode || 'restaurant';
@@ -157,7 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       observedSections.push(heading);
     });
 
-    const navOffset = 128;
     tabsList.querySelectorAll('.category-tab').forEach(tab => {
       tab.addEventListener('click', event => {
         event.preventDefault();
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
         window.scrollTo({
-          top: target.getBoundingClientRect().top + window.pageYOffset - navOffset,
+          top: target.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET,
           behavior: 'smooth'
         });
       });
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (hashTarget) {
         requestAnimationFrame(() => {
           window.scrollTo({
-            top: hashTarget.getBoundingClientRect().top + window.pageYOffset - navOffset,
+            top: hashTarget.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET,
             behavior: 'smooth'
           });
         });

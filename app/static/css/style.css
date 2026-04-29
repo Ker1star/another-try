@@ -542,6 +542,7 @@ button {
 }
 
 .panel.media-panel {
+  position: relative;
   padding: 0;
   overflow: hidden;
 }
@@ -732,13 +733,36 @@ button {
   color: #938476;
 }
 
+.menu-empty {
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(66, 47, 34, 0.08);
+  color: var(--muted);
+}
+
 .message-box {
   display: none;
   margin-top: 14px;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid transparent;
 }
 
 .message-box:not([hidden]) {
   display: block;
+}
+
+.message-box--error {
+  color: #f2d7d0;
+  background: rgba(168, 76, 58, 0.18);
+  border-color: rgba(216, 134, 117, 0.32);
+}
+
+.message-box--success {
+  color: #e5f4dd;
+  background: rgba(92, 129, 84, 0.18);
+  border-color: rgba(136, 187, 135, 0.32);
 }
 
 .order-actions {
@@ -843,7 +867,7 @@ button {
 
 @media (max-width: 720px) {
   :root {
-    --container: min(100vw - 28px, 100vw - 28px);
+    --container: calc(100vw - 28px);
   }
 
   .section {

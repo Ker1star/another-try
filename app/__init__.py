@@ -2,7 +2,7 @@ import os
 
 import click
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template
+from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -134,16 +134,6 @@ def create_app():
     @app.route('/order')
     def order_page():
         return render_template('order.html')
-
-    @app.route('/api/test-auth')
-    def test_auth():
-        from app.services.auth import auth as prest_auth
-
-        try:
-            token = prest_auth()
-            return jsonify({'access_token': token})
-        except Exception as exc:
-            return jsonify({'error': str(exc)}), 500
 
     @app.route('/')
     def index():

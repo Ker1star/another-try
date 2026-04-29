@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Марта — ресторан и доставка в Сыктывкаре</title>
   <meta name="description" content="Марта — тёплый городской ресторан в Сыктывкаре с доставкой, спокойной атмосферой и актуальным меню онлайн.">
+  <meta property="og:type" content="restaurant">
+  <meta property="og:title" content="Марта — ресторан и доставка в Сыктывкаре">
+  <meta property="og:description" content="Марта — тёплый городской ресторан в Сыктывкаре с доставкой, спокойной атмосферой и актуальным меню онлайн.">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -67,10 +71,8 @@
               Всё из-под ножа, собственный заготовочный цех, порции не уменьшались с 2009 года.
             </p>
             <div class="hero-actions">
-              <a href="{{ url_for('menu_page') }}" class="button">Посмотреть меню</a>
-              <a href="#visit" class="button-secondary">Забронировать стол</a>
               <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
-              <a href="#space" class="button-secondary">О нас</a>
+              <a href="{{ url_for('menu_page') }}" class="button-secondary">Посмотреть меню</a>
             </div>
             <div class="hero-facts">
               <div class="fact-card">

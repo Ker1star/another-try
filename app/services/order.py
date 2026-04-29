@@ -65,7 +65,7 @@ def _compact(data):
         return result
 
     if isinstance(data, list):
-        return [_compact(item) for item in data if _compact(item) is not None]
+        return [c for item in data if (c := _compact(item)) is not None]
 
     return data
 
