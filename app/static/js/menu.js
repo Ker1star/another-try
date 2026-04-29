@@ -19,11 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     usedSlugs.set(base, count + 1);
     return count ? `${base}-${count + 1}` : base;
   };
-  const interactiveMode = Boolean(window.MENU_INTERACTIVE);
-  const menuMode = window.MENU_MODE || 'restaurant';
+  const menuConfig = window.MARTA_MENU_CONFIG || {};
+  const interactiveMode = menuConfig.interactive === true;
+  const menuMode = menuConfig.mode || 'restaurant';
+  const menuApiUrl = menuConfig.apiUrl || '/api/menu';
 
   try {
-    const response = await fetch(MENU_API_URL);
+    const response = await fetch(menuApiUrl);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -350,7 +352,7 @@ function initCart() {
   overlay?.addEventListener('click', closeCart);
 
   checkout.addEventListener('click', () => {
-    window.location.href = window.ORDER_PAGE_URL || '/order';
+    window.location.href = window.MARTA_MENU_CONFIG?.orderPageUrl || '/order';
   });
 
   render();

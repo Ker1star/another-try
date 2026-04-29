@@ -111,9 +111,11 @@
   </div>
 
   <script>
-    const MENU_API_URL = "{{ url_for('api.menu_route') }}?mode=restaurant";
-    const MENU_MODE = "restaurant";
-    const MENU_INTERACTIVE = false;
+    window.MARTA_MENU_CONFIG = {
+      apiUrl: "{{ url_for('api.menu_route') }}?mode=restaurant",
+      mode: "restaurant",
+      interactive: false
+    };
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>

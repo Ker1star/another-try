@@ -131,11 +131,12 @@
   </div>
 
   <script>
-    const MENU_API_URL = "{{ url_for('api.menu_route') }}?mode=delivery";
-    const MENU_MODE = "delivery";
-    const MENU_INTERACTIVE = true;
-    const DELIVERY_PAGE_URL = "{{ url_for('delivery_page') }}";
-    const ORDER_PAGE_URL = "{{ url_for('order_page') }}";
+    window.MARTA_MENU_CONFIG = {
+      apiUrl: "{{ url_for('api.menu_route') }}?mode=delivery",
+      mode: "delivery",
+      interactive: true,
+      orderPageUrl: "{{ url_for('order_page') }}"
+    };
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
