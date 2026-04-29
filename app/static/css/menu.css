@@ -153,6 +153,82 @@
   margin-top: 2px;
 }
 
+.menu-page .page-card {
+  padding: 34px 0 22px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.menu-page .menu-container {
+  gap: 58px;
+}
+
+.menu-page .menu-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.menu-page .menu-item {
+  position: relative;
+  min-height: 380px;
+  border-radius: 18px;
+  background: #221b16;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 34px rgba(42, 28, 20, 0.12);
+}
+
+.menu-page .menu-item-media {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  background: #221b16;
+}
+
+.menu-page .menu-item-media img {
+  filter: saturate(0.98) contrast(1.02);
+}
+
+.menu-page .menu-item .info {
+  position: relative;
+  min-height: 380px;
+  align-content: end;
+  padding: 18px;
+  color: #fffaf5;
+  background: linear-gradient(180deg, rgba(28, 20, 15, 0.02) 34%, rgba(28, 20, 15, 0.76) 100%);
+}
+
+.menu-page .menu-item h3 {
+  text-wrap: balance;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
+}
+
+.menu-page .menu-item .description {
+  display: none;
+}
+
+.menu-page .menu-meta {
+  justify-content: flex-start;
+}
+
+.menu-page .menu-item .price {
+  color: #fffaf5;
+}
+
+.menu-page .menu-item .button-secondary,
+.menu-page .menu-item .button-ghost {
+  width: 100%;
+  min-height: 42px;
+  background: rgba(255, 250, 245, 0.9);
+  border-color: rgba(255, 250, 245, 0.3);
+}
+
+.menu-page .menu-item .button-ghost[aria-disabled="true"] {
+  color: rgba(255, 250, 245, 0.78);
+  background: rgba(255, 250, 245, 0.16);
+  cursor: default;
+}
+
 .menu-empty {
   padding: 22px;
   border-radius: 18px;
@@ -328,7 +404,8 @@
 }
 
 @media (max-width: 1040px) {
-  .menu-grid {
+  .menu-grid,
+  .menu-page .menu-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -339,8 +416,14 @@
     align-items: flex-start;
   }
 
-  .menu-grid {
+  .menu-grid,
+  .menu-page .menu-grid {
     grid-template-columns: 1fr;
+  }
+
+  .menu-page .menu-item,
+  .menu-page .menu-item .info {
+    min-height: 330px;
   }
 
   .cart-sidebar {

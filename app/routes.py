@@ -60,14 +60,61 @@ def _item_visible_for_mode(item, mode):
     return True
 
 
+def _sort_by_name(entity):
+    return (entity.name or '').casefold()
+
+
+def _serialize_menu_item(item, parent_sbis_id):
+    return {
+        'id': item.sbis_id,
+        'prestoId': item.presto_id,
+        'externalId': item.external_id,
+        'nomNumber': item.nom_number,
+        'name': item.name,
+        'isParent': False,
+        'hierarchicalId': item.sbis_id,
+        'hierarchicalParent': parent_sbis_id,
+        'price': float(item.price or 0),
+        'description_simple': item.description_simple,
+        'images': _serialize_image_path(item.image_path),
+        'availableForDelivery': bool(item.available_for_delivery),
+        'attributes': {'outQuantity': item.out_quantity}
+    }
+
+
+def _collect_visible_items(category, children_by_parent, mode, visited=None):
+    visited = visited or set()
+    if category.sbis_id in visited:
+        return []
+
+    visited.add(category.sbis_id)
+    visible_items = [
+        item for item in sorted(category.items, key=_sort_by_name)
+        if _item_visible_for_mode(item, mode)
+    ]
+
+    for child in sorted(children_by_parent.get(category.sbis_id, []), key=_sort_by_name):
+        visible_items.extend(_collect_visible_items(child, children_by_parent, mode, visited.copy()))
+
+    return visible_items
+
+
 def _serialize_menu(mode):
     data = []
-    parents = Category.query.filter_by(parent_sbis_id=None).order_by(Category.name).all()
-    for cat in parents:
-        visible_items = [
-            item for item in sorted(cat.items, key=lambda menu_item: menu_item.name)
-            if _item_visible_for_mode(item, mode)
-        ]
+    categories = Category.query.order_by(Category.name).all()
+    category_ids = {category.sbis_id for category in categories}
+    children_by_parent = {}
+    for category in categories:
+        if category.parent_sbis_id is not None:
+            children_by_parent.setdefault(category.parent_sbis_id, []).append(category)
+
+    parents = [
+        category for category in categories
+        if category.parent_sbis_id is None or category.parent_sbis_id not in category_ids
+    ]
+
+    for cat in sorted(parents, key=_sort_by_name):
+        visible_items = _collect_visible_items(cat, children_by_parent, mode)
         if not visible_items:
             continue
 
@@ -79,21 +126,7 @@ def _serialize_menu(mode):
             'hierarchicalParent': None
         })
         for item in visible_items:
-            data.append({
-                'id': item.sbis_id,
-                'prestoId': item.presto_id,
-                'externalId': item.external_id,
-                'nomNumber': item.nom_number,
-                'name': item.name,
-                'isParent': False,
-                'hierarchicalId': item.sbis_id,
-                'hierarchicalParent': cat.sbis_id,
-                'price': float(item.price or 0),
-                'description_simple': item.description_simple,
-                'images': _serialize_image_path(item.image_path),
-                'availableForDelivery': bool(item.available_for_delivery),
-                'attributes': {'outQuantity': item.out_quantity}
-            })
+            data.append(_serialize_menu_item(item, cat.sbis_id))
     return data
 
 

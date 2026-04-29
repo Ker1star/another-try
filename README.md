@@ -38,6 +38,7 @@ Optional environment variables:
 
 - `PRESTO_ORDER_URL`
 - `PRESTO_DELIVERY_COST_URL`
+- `DEFAULT_DELIVERY_AVAILABLE` - default delivery flag for new menu items from SBIS (`true` by default)
 
 Deployment steps:
 
@@ -54,8 +55,11 @@ Flask zero-config deployments on Vercel are not customized through `functions.se
 ## Useful endpoints
 
 - `GET /`
-- `GET /menu`
+- `GET /menu` - restaurant menu page
+- `GET /delivery` - delivery menu and cart page
 - `GET /api/health`
 - `GET /api/menu`
+- `GET /api/menu?mode=delivery`
+- `POST /api/menu/delivery-availability`
 - `POST /api/orders`
 - `GET /api/tasks/sync-menu` with `Authorization: Bearer <CRON_SECRET>`

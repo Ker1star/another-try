@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Меню ресторана — Marta</title>
-  <meta name="description" content="Основное меню ресторана Marta: блюда, категории и позиции, доступные в зале ресторана.">
+  <meta name="description" content="Актуальное ресторанное меню Марта в Сыктывкаре: блюда, фото, цены и отметки доступности в доставке.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
-<body>
+<body class="menu-page">
   <div class="page-shell">
     <div class="mobile-backdrop"></div>
 
@@ -21,7 +21,7 @@
           <span class="brand-mark">M</span>
           <span class="brand-copy">
             <strong>Marta</strong>
-            <span>ресторан • доставка</span>
+            <span>restaurant • delivery</span>
           </span>
         </a>
 
@@ -29,12 +29,13 @@
           <a href="{{ url_for('index') }}">Главная</a>
           <a href="{{ url_for('menu_page') }}" class="active">Меню ресторана</a>
           <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('index') }}#space">Пространство</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
 
         <div class="nav-actions">
-          <a href="{{ url_for('delivery_page') }}" class="button-secondary">Доставка</a>
-          <a href="tel:+78212291247" class="button">Позвонить</a>
+          <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+          <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
         </div>
 
         <button class="menu-toggle" type="button" aria-label="Открыть меню">
@@ -48,10 +49,11 @@
         <a href="{{ url_for('index') }}">Главная</a>
         <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
         <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('index') }}#space">Пространство</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">
-        <a href="{{ url_for('delivery_page') }}" class="button">Меню доставки</a>
+        <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
         <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
       </div>
     </aside>
@@ -62,20 +64,20 @@
           <div class="page-card reveal">
             <div class="page-card-grid">
               <div class="page-copy">
-                <span class="eyebrow">Основное меню Marta</span>
-                <h1 class="section-title">Это полное меню ресторана: здесь собраны позиции для зала, а не только для доставки.</h1>
+                <span class="eyebrow">Ресторанное меню Marta</span>
+                <h1 class="section-title">Большая витрина блюд с фото, ценами и спокойным выбором.</h1>
                 <p class="lead">
-                  Так удобнее разделить сценарии. На этой странице можно спокойно посмотреть всё меню ресторана, а в доставке оставить только те блюда, которые реально подходят для заказа домой или на самовывоз.
+                  Здесь весь опубликованный ассортимент ресторана. Позиции, которые можно привезти домой, отмечены отдельно и ведут на страницу доставки.
                 </p>
               </div>
               <div class="stat-row">
                 <div class="stat-box">
-                  <strong>Полная витрина</strong>
-                  <span>Здесь можно показывать все позиции ресторана без привязки к корзине.</span>
+                  <strong>Меню зала</strong>
+                  <span>Показываем основной каталог без корзины и лишнего сценария оформления.</span>
                 </div>
                 <div class="stat-box">
-                  <strong>Отдельная доставка</strong>
-                  <span>Для заказа онлайн используйте отдельную страницу с сокращённым меню.</span>
+                  <strong>Доставка отдельно</strong>
+                  <span>Не все блюда хорошо доезжают, поэтому заказ вынесен в отдельную витрину.</span>
                 </div>
               </div>
             </div>
@@ -97,12 +99,12 @@
         <div class="footer-shell">
           <div>
             <h2>Marta</h2>
-            <p>Отдельная страница ресторанного меню без корзины и оформления заказа: спокойно для просмотра и честно по смыслу.</p>
+            <p>Ресторанное меню с крупными фотографиями и понятной связкой с доставкой.</p>
           </div>
           <div>
             <h3>Навигация</h3>
+            <p><a href="{{ url_for('index') }}">Главная</a></p>
             <p><a href="{{ url_for('delivery_page') }}">Доставка</a></p>
-            <p><a href="{{ url_for('order_page') }}">Оформление заказа</a></p>
           </div>
           <div>
             <h3>Контакты</h3>
@@ -112,7 +114,7 @@
         </div>
         <div class="footer-meta">
           <span>© 2026 Marta</span>
-          <span>меню ресторана</span>
+          <span>Restaurant menu</span>
         </div>
       </div>
     </footer>
@@ -123,7 +125,6 @@
     const MENU_MODE = "restaurant";
     const MENU_INTERACTIVE = false;
     const DELIVERY_PAGE_URL = "{{ url_for('delivery_page') }}";
-    const ORDER_PAGE_URL = "{{ url_for('order_page') }}";
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>

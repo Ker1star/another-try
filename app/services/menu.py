@@ -1,3 +1,4 @@
+import os
 from urllib.parse import quote
 
 from app import db
@@ -6,9 +7,13 @@ from app.services.auth import get_menu as fetch_sbis_menu
 from app.services.presto_config import get_point_id, get_price_list_id
 
 
+def _default_delivery_available() -> bool:
+    return (os.getenv('DEFAULT_DELIVERY_AVAILABLE') or 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
 def build_image_proxy_path(image_param: str | None) -> str:
     if not image_param:
-        return 'images/no-image.png'
+        return 'images/logo-heart.jpg'
 
     if image_param.startswith('/img?'):
         return f"/api{image_param}"
@@ -90,7 +95,7 @@ def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
                 description_simple=descr,
                 out_quantity=out_qty,
                 image_path=image_path,
-                available_for_delivery=True,
+                available_for_delivery=_default_delivery_available(),
             )
             db.session.add(item)
 

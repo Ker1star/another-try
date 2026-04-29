@@ -55,9 +55,10 @@ def _resolve_database_url():
 
 def _resolve_static_folder():
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    public_static = os.path.join(project_root, 'public', 'static')
-    if os.path.isdir(public_static):
-        return public_static
+    if os.getenv('VERCEL'):
+        public_static = os.path.join(project_root, 'public', 'static')
+        if os.path.isdir(public_static):
+            return public_static
 
     return os.path.join(os.path.dirname(__file__), 'static')
 

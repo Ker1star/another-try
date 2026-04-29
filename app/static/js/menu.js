@@ -7,7 +7,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const categoryOrder = ['Закуски', 'Салаты', 'Супы', 'Пицца', 'Паста', 'Горячие блюда', 'Десерты'];
   const fallbackDescription = 'Описание появится после следующего обновления меню.';
-  const slugify = value => value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+  const usedSlugs = new Map();
+  const slugify = value => {
+    const base = String(value || 'category')
+      .trim()
+      .toLowerCase()
+      .normalize('NFKC')
+      .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+      .replace(/^-+|-+$/g, '') || 'category';
+    const count = usedSlugs.get(base) || 0;
+    usedSlugs.set(base, count + 1);
+    return count ? `${base}-${count + 1}` : base;
+  };
   const interactiveMode = Boolean(window.MENU_INTERACTIVE);
   const menuMode = window.MENU_MODE || 'restaurant';
 
@@ -22,8 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dishes = items.filter(item => !item.isParent);
 
     categories.sort((left, right) => {
-      const leftIndex = categoryOrder.indexOf(left.name);
-      const rightIndex = categoryOrder.indexOf(right.name);
+      const leftIndex = categoryOrder.findIndex(name => left.name.toLowerCase().includes(name.toLowerCase()));
+      const rightIndex = categoryOrder.findIndex(name => right.name.toLowerCase().includes(name.toLowerCase()));
       if (leftIndex === -1 && rightIndex === -1) {
         return left.name.localeCompare(right.name);
       }
@@ -98,8 +109,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         media.className = 'menu-item-media';
 
         const image = document.createElement('img');
-        image.src = dish.images?.length ? dish.images[0] : '/static/images/no-image.png';
+        image.src = dish.images?.length ? dish.images[0] : '/static/images/logo-heart.jpg';
         image.alt = dish.name;
+        image.loading = 'lazy';
         media.appendChild(image);
 
         const info = document.createElement('div');
@@ -157,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabsList.querySelectorAll('.category-tab').forEach(tab => {
       tab.addEventListener('click', event => {
         event.preventDefault();
-        const target = document.querySelector(tab.getAttribute('href'));
+        const target = document.getElementById(tab.hash.slice(1));
         if (!target) {
           return;
         }
@@ -182,6 +194,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       { rootMargin: '-40% 0px -48% 0px', threshold: 0.01 }
     );
     observedSections.forEach(section => tabsObserver.observe(section));
+
+    if (window.location.hash) {
+      const hashTarget = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+      if (hashTarget) {
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: hashTarget.getBoundingClientRect().top + window.pageYOffset - navOffset,
+            behavior: 'smooth'
+          });
+        });
+      }
+    }
 
     if (interactiveMode) {
       initCart();

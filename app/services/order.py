@@ -162,6 +162,14 @@ def _load_menu_items(raw_items):
     missing_ids = [item_id for item_id in item_ids if item_id not in menu_map]
     if missing_ids:
         raise ValueError('Часть позиций из корзины не найдена в локальном меню. Обновите меню и повторите попытку.')
+    unavailable = [
+        item.name for item in menu_items
+        if not item.published or not item.available_for_delivery
+    ]
+    if unavailable:
+        names = ', '.join(unavailable[:3])
+        suffix = ' и другие позиции' if len(unavailable) > 3 else ''
+        raise ValueError(f'Эти позиции недоступны для доставки: {names}{suffix}.')
     return menu_map
 
 
