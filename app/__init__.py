@@ -27,6 +27,8 @@ def _ensure_runtime_schema(connection=None):
         alter_statements.append("ALTER TABLE menu_items ADD COLUMN external_id VARCHAR(64)")
     if 'nom_number' not in existing_columns:
         alter_statements.append("ALTER TABLE menu_items ADD COLUMN nom_number VARCHAR(128)")
+    if 'available_for_delivery' not in existing_columns:
+        alter_statements.append("ALTER TABLE menu_items ADD COLUMN available_for_delivery BOOLEAN NOT NULL DEFAULT TRUE")
 
     for statement in alter_statements:
         if connection is not None:
@@ -119,6 +121,14 @@ def create_app():
     @app.route('/menu.html')
     def menu_page_legacy():
         return render_template('menu.html')
+
+    @app.route('/delivery')
+    def delivery_page():
+        return render_template('delivery.html')
+
+    @app.route('/delivery.html')
+    def delivery_page_legacy():
+        return render_template('delivery.html')
 
     @app.route('/order')
     def order_page():

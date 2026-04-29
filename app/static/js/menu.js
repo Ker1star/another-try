@@ -6,8 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const categoryOrder = ['Закуски', 'Салаты', 'Супы', 'Пицца', 'Паста', 'Горячие блюда', 'Десерты'];
-  const fallbackDescription = 'Спокойная подача, понятный вкус и аккуратный акцент на деталях.';
+  const fallbackDescription = 'Описание появится после следующего обновления меню.';
   const slugify = value => value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+  const interactiveMode = Boolean(window.MENU_INTERACTIVE);
+  const menuMode = window.MENU_MODE || 'restaurant';
 
   try {
     const response = await fetch(MENU_API_URL);
@@ -35,8 +37,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     if (!categories.length) {
-      container.innerHTML = '<div class="menu-empty">Пока нет опубликованных категорий меню.</div>';
-      initCart();
+      container.innerHTML = `<div class="menu-empty">${menuMode === 'delivery' ? 'Сейчас в меню доставки нет доступных категорий.' : 'Сейчас в меню ресторана нет опубликованных категорий.'}</div>`;
+      if (interactiveMode) {
+        initCart();
+      }
       return;
     }
 
@@ -70,7 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       sectionHead.appendChild(heading);
 
       const description = document.createElement('p');
-      description.textContent = `Подборка блюд категории «${category.name.toLowerCase()}» с актуальными ценами и выходом порции.`;
+      description.textContent = menuMode === 'delivery'
+        ? `Позиции категории «${category.name.toLowerCase()}», доступные для доставки и самовывоза.`
+        : `Позиции категории «${category.name.toLowerCase()}», доступные в основном меню ресторана.`;
       sectionHead.appendChild(description);
 
       const grid = document.createElement('div');
@@ -80,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!categoryDishes.length) {
         const empty = document.createElement('div');
         empty.className = 'menu-empty';
-        empty.textContent = 'Для этой категории блюда сейчас не опубликованы.';
+        empty.textContent = 'В этой категории сейчас нет доступных позиций.';
         grid.appendChild(empty);
       }
 
@@ -95,11 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         image.src = dish.images?.length ? dish.images[0] : '/static/images/no-image.png';
         image.alt = dish.name;
         media.appendChild(image);
-
-        const badge = document.createElement('div');
-        badge.className = 'menu-item-badge';
-        badge.textContent = dish.attributes?.outQuantity ? `Порция: ${dish.attributes.outQuantity}` : 'Порция уточняется';
-        media.appendChild(badge);
 
         const info = document.createElement('div');
         info.className = 'info';
@@ -116,10 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const meta = document.createElement('div');
         meta.className = 'menu-meta';
 
-        const metaLabel = document.createElement('span');
-        metaLabel.textContent = dish.attributes?.outQuantity ? `Выход ${dish.attributes.outQuantity}` : 'Выход уточняется';
-        meta.appendChild(metaLabel);
-
         const price = document.createElement('span');
         price.className = 'price';
         const numericPrice = Number(dish.price);
@@ -127,12 +124,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         meta.appendChild(price);
         info.appendChild(meta);
 
-        const action = document.createElement('button');
-        action.type = 'button';
-        action.className = 'button btn-add';
-        action.textContent = 'В корзину';
-        action.addEventListener('click', () => addToCart(dish));
-        info.appendChild(action);
+        if (interactiveMode) {
+          const action = document.createElement('button');
+          action.type = 'button';
+          action.className = 'button btn-add';
+          action.textContent = 'Добавить в корзину';
+          action.addEventListener('click', () => addToCart(dish));
+          info.appendChild(action);
+        } else {
+          const action = document.createElement('a');
+          action.className = dish.availableForDelivery ? 'button-secondary' : 'button-ghost';
+          action.href = dish.availableForDelivery ? `${window.DELIVERY_PAGE_URL}#${sectionId}` : '#';
+          action.textContent = dish.availableForDelivery ? 'Есть в доставке' : 'Только в ресторане';
+          if (!dish.availableForDelivery) {
+            action.setAttribute('aria-disabled', 'true');
+            action.addEventListener('click', event => event.preventDefault());
+          }
+          info.appendChild(action);
+        }
 
         card.append(media, info);
         grid.appendChild(card);
@@ -174,11 +183,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
     observedSections.forEach(section => tabsObserver.observe(section));
 
-    initCart();
+    if (interactiveMode) {
+      initCart();
+    }
   } catch (error) {
     console.error('Ошибка при загрузке меню:', error);
-    container.innerHTML = '<div class="menu-empty">Не удалось загрузить меню. Попробуйте обновить страницу чуть позже.</div>';
-    initCart();
+    container.innerHTML = `<div class="menu-empty">${menuMode === 'delivery' ? 'Не удалось загрузить меню доставки. Попробуйте обновить страницу чуть позже.' : 'Не удалось загрузить меню ресторана. Попробуйте обновить страницу чуть позже.'}</div>`;
+    if (interactiveMode) {
+      initCart();
+    }
   }
 });
 
@@ -323,7 +336,7 @@ function initCart() {
   overlay?.addEventListener('click', closeCart);
 
   checkout.addEventListener('click', () => {
-    window.location.href = '/order';
+    window.location.href = window.ORDER_PAGE_URL || '/order';
   });
 
   render();

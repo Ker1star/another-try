@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Оформление заказа — Marta</title>
-  <meta name="description" content="Оформление доставки из ресторана Марта в Сыктывкаре.">
+  <title>Оформление доставки — Marta</title>
+  <meta name="description" content="Оформление доставки из ресторана Marta в Сыктывкаре: контакты, адрес и подтверждение заказа онлайн.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,19 +20,20 @@
           <span class="brand-mark">M</span>
           <span class="brand-copy">
             <strong>Marta</strong>
-            <span>restaurant • delivery</span>
+            <span>ресторан • доставка</span>
           </span>
         </a>
 
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}">Главная</a>
-          <a href="{{ url_for('menu_page') }}">Меню</a>
-          <a href="{{ url_for('order_page') }}" class="active">Заказ</a>
+          <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('order_page') }}" class="active">Оформление</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
 
         <div class="nav-actions">
-          <a href="{{ url_for('menu_page') }}" class="button-secondary">Вернуться в меню</a>
+          <a href="{{ url_for('delivery_page') }}" class="button-secondary">Вернуться в доставку</a>
           <a href="tel:+78212291247" class="button">Позвонить</a>
         </div>
 
@@ -45,12 +46,13 @@
     <aside class="mobile-nav" aria-label="Мобильная навигация">
       <nav class="mobile-nav-links">
         <a href="{{ url_for('index') }}">Главная</a>
-        <a href="{{ url_for('menu_page') }}">Меню</a>
-        <a href="{{ url_for('order_page') }}">Заказ</a>
+        <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+        <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('order_page') }}">Оформление</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">
-        <a href="{{ url_for('menu_page') }}" class="button">Вернуться в меню</a>
+        <a href="{{ url_for('delivery_page') }}" class="button">Вернуться в доставку</a>
         <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
       </div>
     </aside>
@@ -61,20 +63,20 @@
           <div class="page-card reveal">
             <div class="page-card-grid">
               <div class="page-copy">
-                <span class="eyebrow">Оформление Marta</span>
-                <h1 class="section-title">Короткий checkout без лишних полей и ненужных шагов.</h1>
+                <span class="eyebrow">Оформление доставки</span>
+                <h1 class="section-title">Оставьте контакты и адрес, а всё остальное мы уже передадим в систему ресторана.</h1>
                 <p class="lead">
-                  Заполните контактные данные, проверьте корзину и отправьте заказ. Сценарий собран так, чтобы вы не искали глазами главное и не теряли темп.
+                  Здесь только то, что действительно нужно для заказа: имя, телефон, адрес и комментарий для курьера. Без лишних шагов и лишних полей.
                 </p>
               </div>
               <div class="stat-row">
                 <div class="stat-box">
-                  <strong>Оплата</strong>
-                  <span>Наличными или картой курьеру.</span>
+                  <strong>Оплата при получении</strong>
+                  <span>Можно выбрать наличные или карту курьеру.</span>
                 </div>
                 <div class="stat-box">
-                  <strong>Прямая интеграция</strong>
-                  <span>Заказ сразу уходит в Saby Presto.</span>
+                  <strong>Подтверждение заказа</strong>
+                  <span>Если потребуется уточнение, команда свяжется с вами по телефону.</span>
                 </div>
               </div>
             </div>
@@ -85,7 +87,7 @@
       <section class="container">
         <div class="order-layout">
           <article class="order-card reveal">
-            <h2>Данные для доставки</h2>
+            <h2>Куда и кому привезти заказ</h2>
             <form id="orderForm" novalidate>
               <div class="order-form-grid">
                 <div class="field">
@@ -109,8 +111,8 @@
                   <input type="text" id="house" name="house" placeholder="1" required>
                 </div>
                 <div class="field">
-                  <label for="apartment">Квартира / офис</label>
-                  <input type="text" id="apartment" name="apartment" placeholder="Если нужно" required>
+                  <label for="apartment">Квартира / офис / подъезд</label>
+                  <input type="text" id="apartment" name="apartment" placeholder="Если нужно">
                 </div>
                 <div class="field">
                   <label for="paymentType">Способ оплаты</label>
@@ -120,26 +122,26 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label for="changeAmount" id="changeAmountLabel">С какой суммы подготовить сдачу</label>
+                  <label for="changeAmount" id="changeAmountLabel">Подготовить сдачу с суммы</label>
                   <input type="number" id="changeAmount" name="changeAmount" min="0" step="1" placeholder="Например, 3000">
                 </div>
                 <div class="field full">
                   <label for="comment">Комментарий к заказу</label>
-                  <textarea id="comment" name="comment" placeholder="Подъезд, этаж, код домофона или пожелания"></textarea>
+                  <textarea id="comment" name="comment" placeholder="Код домофона, этаж, ориентир или другие детали для курьера"></textarea>
                 </div>
               </div>
 
               <div id="orderMessage" class="message-box" hidden></div>
 
               <div class="order-actions">
-                <button type="submit" class="button" id="submitOrder" disabled>Отправить заказ</button>
-                <a href="{{ url_for('menu_page') }}" class="button-secondary">Вернуться к блюдам</a>
+                <button type="submit" class="button" id="submitOrder" disabled>Подтвердить заказ</button>
+                <a href="{{ url_for('delivery_page') }}" class="button-secondary">Вернуться в доставку</a>
               </div>
             </form>
           </article>
 
           <aside class="order-card reveal delay-1">
-            <h2>Ваш заказ</h2>
+            <h2>Состав заказа</h2>
             <div id="orderSummary" hidden>
               <ul id="orderItemsList" class="order-summary-list"></ul>
               <div class="summary-total">
@@ -147,12 +149,12 @@
                 <strong id="orderTotal">0 ₽</strong>
               </div>
               <p class="summary-note">
-                После отправки заказ сразу передаётся в систему ресторана. Если нужен быстрый ответ, позвоните по номеру
+                После отправки заказ сразу уходит в систему ресторана. Если нужен быстрый ответ или хотите уточнить детали, позвоните по номеру
                 <a href="tel:+78212291247">+7 (8212) 29-12-47</a>.
               </p>
             </div>
             <div id="orderSummaryEmpty" class="menu-empty">
-              Корзина пока пуста. Вернитесь в меню и добавьте блюда перед оформлением заказа.
+              Корзина пока пустая. Вернитесь в меню доставки и добавьте блюда перед оформлением заказа.
             </div>
           </aside>
         </div>

@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       summary?.setAttribute('hidden', '');
       summaryEmpty?.removeAttribute('hidden');
       submitButton.disabled = true;
-      showMessage('Корзина пуста. Вернитесь в меню и добавьте блюда.', 'error');
+      showMessage('Корзина пустая. Вернитесь в меню доставки и добавьте блюда.', 'error');
       return;
     }
 
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   form?.addEventListener('submit', async event => {
     event.preventDefault();
     if (!cart.length) {
-      showMessage('Корзина пуста.', 'error');
+      showMessage('Корзина пустая.', 'error');
       return;
     }
 
@@ -149,14 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       localStorage.removeItem('cart');
-      showMessage('Спасибо. Заказ передан в Marta и уже обрабатывается.', 'success');
-      submitButton.textContent = 'Отправлено';
+      showMessage('Заказ отправлен. Если потребуется уточнение, ресторан свяжется с вами.', 'success');
+      submitButton.textContent = 'Заказ принят';
       setTimeout(() => {
-        window.location.href = '/menu';
+        window.location.href = '/delivery';
       }, 1300);
     } catch (error) {
       submitButton.disabled = false;
-      submitButton.textContent = 'Отправить заказ';
+      submitButton.textContent = 'Подтвердить заказ';
       showMessage(error.message || 'Не удалось отправить заказ.', 'error');
     }
   });

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Меню ресторана — Marta</title>
-  <meta name="description" content="Основное меню ресторана Marta: блюда, категории и позиции, доступные в зале ресторана.">
+  <title>Доставка — Marta</title>
+  <meta name="description" content="Меню доставки Marta в Сыктывкаре: актуальные позиции, корзина и оформление заказа онлайн.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,14 +27,17 @@
 
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}">Главная</a>
-          <a href="{{ url_for('menu_page') }}" class="active">Меню ресторана</a>
-          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+          <a href="{{ url_for('delivery_page') }}" class="active">Доставка</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
 
         <div class="nav-actions">
-          <a href="{{ url_for('delivery_page') }}" class="button-secondary">Доставка</a>
-          <a href="tel:+78212291247" class="button">Позвонить</a>
+          <button id="cartBtn" class="button-secondary" type="button">
+            Корзина
+            <span id="cartCount" class="cart-badge">0</span>
+          </button>
+          <a href="{{ url_for('order_page') }}" class="button">Оформить заказ</a>
         </div>
 
         <button class="menu-toggle" type="button" aria-label="Открыть меню">
@@ -51,8 +54,8 @@
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">
-        <a href="{{ url_for('delivery_page') }}" class="button">Меню доставки</a>
-        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+        <button id="cartBtnMobile" class="button-secondary" type="button">Открыть корзину</button>
+        <a href="{{ url_for('order_page') }}" class="button">К оформлению</a>
       </div>
     </aside>
 
@@ -62,20 +65,20 @@
           <div class="page-card reveal">
             <div class="page-card-grid">
               <div class="page-copy">
-                <span class="eyebrow">Основное меню Marta</span>
-                <h1 class="section-title">Это полное меню ресторана: здесь собраны позиции для зала, а не только для доставки.</h1>
+                <span class="eyebrow">Меню доставки Marta</span>
+                <h1 class="section-title">Здесь только те позиции, которые доступны для доставки или самовывоза.</h1>
                 <p class="lead">
-                  Так удобнее разделить сценарии. На этой странице можно спокойно посмотреть всё меню ресторана, а в доставке оставить только те блюда, которые реально подходят для заказа домой или на самовывоз.
+                  Страница доставки отделена от ресторанного меню, чтобы корзина, заказ и ассортимент не мешали друг другу. Всё, что нельзя или не стоит везти, можно убрать отсюда отдельно.
                 </p>
               </div>
               <div class="stat-row">
                 <div class="stat-box">
-                  <strong>Полная витрина</strong>
-                  <span>Здесь можно показывать все позиции ресторана без привязки к корзине.</span>
+                  <strong>Только доставка</strong>
+                  <span>Показываем сокращённое меню, подходящее для заказа онлайн.</span>
                 </div>
                 <div class="stat-box">
-                  <strong>Отдельная доставка</strong>
-                  <span>Для заказа онлайн используйте отдельную страницу с сокращённым меню.</span>
+                  <strong>Быстрое оформление</strong>
+                  <span>Выберите блюда, проверьте корзину и переходите к подтверждению заказа.</span>
                 </div>
               </div>
             </div>
@@ -92,16 +95,33 @@
       </section>
     </main>
 
+    <div id="cartOverlay" class="cart-overlay"></div>
+    <aside id="cartSidebar" class="cart-sidebar" aria-label="Корзина">
+      <header>
+        <div>
+          <h3>Корзина</h3>
+          <p>Проверьте состав заказа и переходите к оформлению доставки.</p>
+        </div>
+        <button class="close-btn" id="closeCart" type="button" aria-label="Закрыть корзину">×</button>
+      </header>
+      <ul id="cartList"></ul>
+      <div class="cart-total">
+        <span>Итого</span>
+        <strong id="cartTotal">0 ₽</strong>
+      </div>
+      <button class="button btn-checkout" id="checkoutBtn" type="button" disabled>Перейти к оформлению</button>
+    </aside>
+
     <footer class="footer">
       <div class="container">
         <div class="footer-shell">
           <div>
             <h2>Marta</h2>
-            <p>Отдельная страница ресторанного меню без корзины и оформления заказа: спокойно для просмотра и честно по смыслу.</p>
+            <p>Отдельное меню доставки с корзиной и оформлением заказа без смешения с ресторанной витриной.</p>
           </div>
           <div>
             <h3>Навигация</h3>
-            <p><a href="{{ url_for('delivery_page') }}">Доставка</a></p>
+            <p><a href="{{ url_for('menu_page') }}">Меню ресторана</a></p>
             <p><a href="{{ url_for('order_page') }}">Оформление заказа</a></p>
           </div>
           <div>
@@ -112,16 +132,16 @@
         </div>
         <div class="footer-meta">
           <span>© 2026 Marta</span>
-          <span>меню ресторана</span>
+          <span>доставка • самовывоз</span>
         </div>
       </div>
     </footer>
   </div>
 
   <script>
-    const MENU_API_URL = "{{ url_for('api.menu_route') }}?mode=restaurant";
-    const MENU_MODE = "restaurant";
-    const MENU_INTERACTIVE = false;
+    const MENU_API_URL = "{{ url_for('api.menu_route') }}?mode=delivery";
+    const MENU_MODE = "delivery";
+    const MENU_INTERACTIVE = true;
     const DELIVERY_PAGE_URL = "{{ url_for('delivery_page') }}";
     const ORDER_PAGE_URL = "{{ url_for('order_page') }}";
   </script>

@@ -3,7 +3,8 @@ import os
 from flask import Blueprint, Response, abort, current_app, jsonify, request
 import requests
 
-from app.models import Category
+from app import db
+from app.models import Category, MenuItem
 from app.services.auth import auth as fetch_token
 from app.services.menu import upsert_menu
 from app.services.order import PrestoOrderError, create_order
@@ -44,15 +45,32 @@ def _require_database():
     return _database_error_response()
 
 
-@api_bp.route('/menu', methods=['GET'])
-def menu_route():
-    unavailable_response = _require_database()
-    if unavailable_response:
-        return unavailable_response
+def _resolve_menu_mode():
+    mode = (request.args.get('mode') or 'restaurant').strip().lower()
+    if mode not in {'restaurant', 'delivery'}:
+        mode = 'restaurant'
+    return mode
 
+
+def _item_visible_for_mode(item, mode):
+    if not item.published:
+        return False
+    if mode == 'delivery':
+        return bool(item.available_for_delivery)
+    return True
+
+
+def _serialize_menu(mode):
     data = []
     parents = Category.query.filter_by(parent_sbis_id=None).order_by(Category.name).all()
     for cat in parents:
+        visible_items = [
+            item for item in sorted(cat.items, key=lambda menu_item: menu_item.name)
+            if _item_visible_for_mode(item, mode)
+        ]
+        if not visible_items:
+            continue
+
         data.append({
             'id': cat.sbis_id,
             'name': cat.name,
@@ -60,7 +78,7 @@ def menu_route():
             'hierarchicalId': cat.sbis_id,
             'hierarchicalParent': None
         })
-        for item in cat.items:
+        for item in visible_items:
             data.append({
                 'id': item.sbis_id,
                 'prestoId': item.presto_id,
@@ -73,9 +91,50 @@ def menu_route():
                 'price': float(item.price or 0),
                 'description_simple': item.description_simple,
                 'images': _serialize_image_path(item.image_path),
+                'availableForDelivery': bool(item.available_for_delivery),
                 'attributes': {'outQuantity': item.out_quantity}
             })
-    return jsonify({'data': data})
+    return data
+
+
+@api_bp.route('/menu', methods=['GET'])
+def menu_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    mode = _resolve_menu_mode()
+    return jsonify({'mode': mode, 'data': _serialize_menu(mode)})
+
+
+@api_bp.route('/menu/delivery-availability', methods=['POST'])
+def update_delivery_availability_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    if not _authorize_internal_task():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    payload = request.get_json(silent=True) or {}
+    item_ids = payload.get('ids') or []
+    available_for_delivery = payload.get('availableForDelivery')
+
+    if not isinstance(item_ids, list) or not item_ids:
+        return jsonify({'error': 'ids must be a non-empty array'}), 400
+    if not isinstance(available_for_delivery, bool):
+        return jsonify({'error': 'availableForDelivery must be boolean'}), 400
+
+    updated = MenuItem.query.filter(MenuItem.sbis_id.in_(item_ids)).update(
+        {'available_for_delivery': available_for_delivery},
+        synchronize_session=False,
+    )
+    db.session.commit()
+    return jsonify({
+        'status': 'ok',
+        'updated': updated,
+        'availableForDelivery': available_for_delivery,
+    })
 
 
 @api_bp.route('/update-menu', methods=['POST'])

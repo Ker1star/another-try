@@ -90,6 +90,7 @@ def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
                 description_simple=descr,
                 out_quantity=out_qty,
                 image_path=image_path,
+                available_for_delivery=True,
             )
             db.session.add(item)
 

@@ -20,20 +20,21 @@
           <span class="brand-mark">M</span>
           <span class="brand-copy">
             <strong>Marta</strong>
-            <span>restaurant • delivery</span>
+            <span>ресторан • доставка</span>
           </span>
         </a>
 
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}" class="active">Главная</a>
-          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
           <a href="#space">Пространство</a>
           <a href="#visit">Контакты</a>
         </nav>
 
         <div class="nav-actions">
           <a href="tel:+78212291247" class="button-ghost">+7 (8212) 29-12-47</a>
-          <a href="{{ url_for('menu_page') }}" class="button">Заказать</a>
+          <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
         </div>
 
         <button class="menu-toggle" type="button" aria-label="Открыть меню">
@@ -45,12 +46,13 @@
     <aside class="mobile-nav" aria-label="Мобильная навигация">
       <nav class="mobile-nav-links">
         <a href="{{ url_for('index') }}">Главная</a>
-        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('menu_page') }}">Меню ресторана</a>
+        <a href="{{ url_for('delivery_page') }}">Доставка</a>
         <a href="#space">Пространство</a>
         <a href="#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">
-        <a href="{{ url_for('menu_page') }}" class="button">Открыть меню</a>
+        <a href="{{ url_for('delivery_page') }}" class="button">Меню доставки</a>
         <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
       </div>
     </aside>
@@ -65,7 +67,8 @@
               «Марта» собрана как хорошее городское место: без лишнего визуального шума, с понятным меню, камерной атмосферой и цифровым заказом, который не раздражает.
             </p>
             <div class="hero-actions">
-              <a href="{{ url_for('menu_page') }}" class="button">Смотреть меню</a>
+              <a href="{{ url_for('menu_page') }}" class="button-secondary">Меню ресторана</a>
+              <a href="{{ url_for('delivery_page') }}" class="button">Меню доставки</a>
               <a href="#visit" class="button-secondary">Контакты</a>
             </div>
             <div class="hero-facts">
@@ -148,7 +151,8 @@
               Актуальные позиции, понятные категории, чистые карточки блюд и корзина без перегрузки. Всё важное видно сразу, без лишних переходов и декоративных препятствий.
             </p>
             <div class="hero-actions">
-              <a href="{{ url_for('menu_page') }}" class="button">Перейти к меню</a>
+              <a href="{{ url_for('menu_page') }}" class="button-secondary">Посмотреть меню ресторана</a>
+              <a href="{{ url_for('delivery_page') }}" class="button">Перейти к доставке</a>
               <a href="{{ url_for('order_page') }}" class="button-secondary">Оформить заказ</a>
             </div>
           </article>
@@ -183,7 +187,8 @@
               </div>
             </div>
             <div class="hero-actions">
-              <a href="{{ url_for('menu_page') }}" class="button">Открыть меню</a>
+              <a href="{{ url_for('menu_page') }}" class="button-secondary">Меню ресторана</a>
+              <a href="{{ url_for('delivery_page') }}" class="button">Меню доставки</a>
               <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
             </div>
           </article>
@@ -204,7 +209,8 @@
           </div>
           <div>
             <h3>Навигация</h3>
-            <p><a href="{{ url_for('menu_page') }}">Меню</a></p>
+            <p><a href="{{ url_for('menu_page') }}">Меню ресторана</a></p>
+            <p><a href="{{ url_for('delivery_page') }}">Доставка</a></p>
             <p><a href="#space">Пространство</a></p>
             <p><a href="#visit">Контакты</a></p>
           </div>
@@ -216,7 +222,7 @@
         </div>
         <div class="footer-meta">
           <span>© 2026 Marta</span>
-          <span>Restaurant • delivery</span>
+          <span>ресторан • доставка</span>
         </div>
       </div>
     </footer>

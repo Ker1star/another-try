@@ -117,21 +117,6 @@
   object-fit: cover;
 }
 
-.menu-item-badge {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  min-height: 30px;
-  padding: 0 10px;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  background: rgba(255, 251, 247, 0.92);
-  border: 1px solid rgba(66, 47, 34, 0.08);
-  color: var(--muted-strong);
-  font-size: 0.82rem;
-}
-
 .menu-item .info {
   display: grid;
   gap: 12px;
@@ -152,14 +137,9 @@
 
 .menu-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   align-items: center;
-}
-
-.menu-meta span {
-  color: var(--muted);
-  font-size: 0.86rem;
 }
 
 .menu-item .price {

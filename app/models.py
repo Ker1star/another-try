@@ -1,6 +1,7 @@
 from datetime import datetime
 from app import db
 
+
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
@@ -8,6 +9,7 @@ class Category(db.Model):
     name = db.Column(db.String(255), nullable=False)
     parent_sbis_id = db.Column(db.Integer, db.ForeignKey('categories.sbis_id'), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class MenuItem(db.Model):
     __tablename__ = 'menu_items'
@@ -23,6 +25,7 @@ class MenuItem(db.Model):
     image_path = db.Column(db.String(512), nullable=True)
     price = db.Column(db.Numeric(10,2), nullable=True)
     published = db.Column(db.Boolean, default=True)
+    available_for_delivery = db.Column(db.Boolean, default=True, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     category = db.relationship('Category', backref='items')
