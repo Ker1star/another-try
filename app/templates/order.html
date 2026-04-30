@@ -75,12 +75,12 @@
               </div>
               <div class="stat-row">
                 <div class="stat-box">
-                  <strong>Оплата при получении</strong>
-                  <span>Можно выбрать наличные или карту курьеру.</span>
+                  <strong>Оплата онлайн</strong>
+                  <span>Картой через защищённую страницу ЮКасса — заказ принимается только после оплаты.</span>
                 </div>
                 <div class="stat-box">
                   <strong>Подтверждение заказа</strong>
-                  <span>Если потребуется уточнение, команда свяжется с вами по телефону.</span>
+                  <span>После оплаты заказ сразу уходит в систему ресторана. Команда свяжется, если нужно уточнение.</span>
                 </div>
               </div>
             </div>
@@ -118,17 +118,6 @@
                   <label for="apartment">Квартира / офис / подъезд</label>
                   <input type="text" id="apartment" name="apartment" placeholder="Если нужно">
                 </div>
-                <div class="field">
-                  <label for="paymentType">Способ оплаты</label>
-                  <select id="paymentType" name="paymentType" required>
-                    <option value="cash">Наличными курьеру</option>
-                    <option value="card">Картой курьеру</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="changeAmount" id="changeAmountLabel">Подготовить сдачу с суммы</label>
-                  <input type="number" id="changeAmount" name="changeAmount" min="0" step="1" placeholder="Например, 3000">
-                </div>
                 <div class="field full">
                   <label for="comment">Комментарий к заказу</label>
                   <textarea id="comment" name="comment" placeholder="Код домофона, этаж, ориентир или другие детали для курьера"></textarea>
@@ -138,7 +127,7 @@
               <div id="orderMessage" class="message-box" hidden></div>
 
               <div class="order-actions">
-                <button type="submit" class="button" id="submitOrder" disabled>Подтвердить заказ</button>
+                <button type="submit" class="button" id="submitOrder" disabled>Перейти к оплате</button>
                 <a href="{{ url_for('delivery_page') }}" class="button-secondary">Вернуться в доставку</a>
               </div>
             </form>

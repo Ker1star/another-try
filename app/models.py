@@ -2,6 +2,14 @@ from datetime import datetime, timezone
 from app import db
 
 
+class PendingOrder(db.Model):
+    __tablename__ = 'pending_orders'
+    id = db.Column(db.Integer, primary_key=True)
+    payment_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    payload_json = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)

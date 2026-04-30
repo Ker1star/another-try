@@ -8,6 +8,7 @@ from app.models import Category, MenuItem
 from app.services.auth import auth as fetch_token
 from app.services.menu import upsert_menu
 from app.services.order import PrestoOrderError, create_order
+from app.services.payment import create_payment, handle_webhook
 from app.services.presto_config import get_point_id, get_price_list_id
 
 api_bp = Blueprint('api', __name__)
@@ -227,6 +228,54 @@ def create_order_route():
         return jsonify({'error': str(exc), 'details': exc.details}), exc.status_code
 
     return jsonify({'status': 'ok', 'order': result})
+
+
+@api_bp.route('/payments', methods=['POST'])
+def create_payment_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        result = create_payment(payload, base_url=request.host_url.rstrip('/'))
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    except RuntimeError as exc:
+        current_app.logger.error("Payment setup error: %s", exc)
+        return jsonify({'error': 'Онлайн-оплата временно недоступна.'}), 503
+
+    return jsonify(result)
+
+
+@api_bp.route('/payments/webhook', methods=['POST'])
+def payment_webhook_route():
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    remote_ip = (
+        request.headers.get('X-Real-IP')
+        or request.headers.get('X-Forwarded-For', '').split(',')[0].strip()
+        or request.remote_addr
+    )
+
+    try:
+        result = handle_webhook(request.get_data(), remote_ip=remote_ip)
+    except PermissionError as exc:
+        current_app.logger.warning("Webhook rejected: %s", exc)
+        return jsonify({'error': 'Forbidden'}), 403
+    except ValueError as exc:
+        current_app.logger.error("Webhook payload error: %s", exc)
+        return jsonify({'error': str(exc)}), 400
+    except PrestoOrderError as exc:
+        current_app.logger.error("SBIS order failed in webhook: %s | details=%s", exc, exc.details)
+        return jsonify({'error': str(exc)}), 500
+    except Exception:
+        current_app.logger.exception("Unexpected webhook error")
+        return jsonify({'error': 'Internal error'}), 500
+
+    return jsonify(result)
 
 
 @api_bp.route('/health', methods=['GET'])

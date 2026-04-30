@@ -230,6 +230,16 @@ def _build_nomenclatures(raw_items, menu_map, price_list_id):
     return nomenclatures
 
 
+def calculate_order_total(raw_items: list) -> float:
+    """Validate cart items and return total using DB prices (not client-submitted prices)."""
+    menu_map = _load_menu_items(raw_items)
+    return sum(
+        float(menu_map[item['id']].price or 0) * max(1, int(item.get('qty') or 1))
+        for item in raw_items
+        if item.get('id') is not None
+    )
+
+
 def build_order_payload(payload, *, base_url=None):
     raw_items = payload.get('items') or []
     point_id = get_point_id()

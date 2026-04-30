@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('orderForm');
   const submitButton = document.getElementById('submitOrder');
   const phoneInput = document.getElementById('phone');
-  const paymentType = document.getElementById('paymentType');
-  const changeAmount = document.getElementById('changeAmount');
-  const changeAmountLabel = document.getElementById('changeAmountLabel');
   const messageBox = document.getElementById('orderMessage');
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
@@ -16,31 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!messageBox) {
       return;
     }
-
     if (!text) {
       messageBox.hidden = true;
       messageBox.textContent = '';
       messageBox.classList.remove('message-box--error', 'message-box--success');
       return;
     }
-
     messageBox.hidden = false;
     messageBox.textContent = text;
     messageBox.classList.toggle('message-box--error', type === 'error');
     messageBox.classList.toggle('message-box--success', type === 'success');
-  };
-
-  const toggleChangeAmount = () => {
-    const visible = paymentType?.value === 'cash';
-    if (changeAmountLabel) {
-      changeAmountLabel.hidden = !visible;
-    }
-    if (changeAmount) {
-      changeAmount.hidden = !visible;
-      if (!visible) {
-        changeAmount.value = '';
-      }
-    }
   };
 
   const renderSummary = () => {
@@ -84,8 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
     phoneInput.value = phoneInput.value.replace(/[^0-9+()\-\s]/g, '').slice(0, 22);
   });
 
-  paymentType?.addEventListener('change', toggleChangeAmount);
-  toggleChangeAmount();
+  // Handle return from YooKassa payment page
+  const params = new URLSearchParams(window.location.search);
+  const paymentStatus = params.get('payment');
+  if (paymentStatus === 'success') {
+    localStorage.removeItem('cart');
+    showMessage('Оплата прошла. Заказ принят и передаётся на кухню — ждите звонка при необходимости уточнений.', 'success');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Заказ оплачен';
+    }
+  } else if (paymentStatus === 'error') {
+    showMessage('Оплата не прошла. Проверьте данные карты и попробуйте снова.', 'error');
+  }
+
   renderSummary();
 
   form?.addEventListener('submit', async event => {
@@ -97,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showMessage('');
     submitButton.disabled = true;
-    submitButton.textContent = 'Отправляем...';
+    submitButton.textContent = 'Создаём платёж...';
 
     const payload = {
       customerName: form.customerName.value.trim(),
@@ -108,8 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         house: form.house.value.trim(),
         apartment: form.apartment.value.trim(),
       },
-      paymentType: form.paymentType.value,
-      changeAmount: form.changeAmount.value.trim(),
       comment: form.comment.value.trim(),
       items: cart.map(item => ({
         id: item.id,
@@ -124,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      const response = await fetch('/api/orders', {
+      const response = await fetch('/api/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -132,28 +124,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const details = typeof result.details?.error?.details === 'string'
-          ? result.details.error.details
-          : typeof result.details?.error?.message === 'string'
-            ? result.details.error.message
-            : typeof result.details?.raw === 'string'
-              ? result.details.raw
-              : typeof result.details?.requestError === 'string'
-                ? result.details.requestError
-                : '';
-        throw new Error(details || result.error || 'Не удалось отправить заказ.');
+        throw new Error(result.error || 'Не удалось создать платёж.');
       }
 
-      localStorage.removeItem('cart');
-      showMessage('Заказ отправлен. Если потребуется уточнение, ресторан свяжется с вами.', 'success');
-      submitButton.textContent = 'Заказ принят';
-      setTimeout(() => {
-        window.location.href = '/delivery';
-      }, 1300);
+      if (!result.confirmationUrl) {
+        throw new Error('Сервер не вернул ссылку для оплаты.');
+      }
+
+      window.location.href = result.confirmationUrl;
     } catch (error) {
       submitButton.disabled = false;
-      submitButton.textContent = 'Подтвердить заказ';
-      showMessage(error.message || 'Не удалось отправить заказ.', 'error');
+      submitButton.textContent = 'Перейти к оплате';
+      showMessage(error.message || 'Не удалось создать платёж.', 'error');
     }
   });
 });
