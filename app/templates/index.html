@@ -13,6 +13,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Marta",
+    "description": "Городской ресторан с камерной атмосферой и доставкой в Сыктывкаре. Собственный заготовочный цех, блюда из свежих продуктов с 2009 года.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Сысольское шоссе, 1",
+      "addressLocality": "Сыктывкар",
+      "addressRegion": "Республика Коми",
+      "postalCode": "167000",
+      "addressCountry": "RU"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 61.65957,
+      "longitude": 50.83392
+    },
+    "telephone": "+78212291247",
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+      "opens": "12:00",
+      "closes": "23:00"
+    },
+    "servesCuisine": "Европейская",
+    "priceRange": "₽₽",
+    "hasMenu": "{{ request.host_url }}menu",
+    "url": "{{ request.host_url }}"
+  }
+  </script>
 </head>
 <body>
   <div class="page-shell">
@@ -113,23 +145,23 @@
       <section class="section compact" id="space">
         <div class="container split-layout">
           <article class="panel reveal">
-            <span class="eyebrow">Подход</span>
-            <h2 class="panel-title">Меньше декора. Больше ритма, воздуха и уверенности.</h2>
+            <span class="eyebrow">Кухня</span>
+            <h2 class="panel-title">Своё производство. Без полуфабрикатов и заморозки.</h2>
             <p class="lead">
-              Хороший ресторанный сайт не развлекает анимациями и не спорит с меню. Он быстро даёт понять атмосферу места, помогает выбрать блюдо и не ломает темп заказа.
+              Заготовочный цех работает каждый день. Соусы, заготовки и основы — только собственного производства. Порции не уменьшались с 2009 года.
             </p>
             <div class="signature-list">
               <div class="signature-item">
-                <strong>Простой маршрут</strong>
-                <span>Главная, меню ресторана, доставка, корзина и оформление собраны в понятный сценарий.</span>
+                <strong>С 2009 года</strong>
+                <span>Ресторан, который держит стандарт — без погони за трендами и без компромиссов по качеству.</span>
               </div>
               <div class="signature-item">
-                <strong>Живая, но тихая анимация</strong>
-                <span>Переходы добавляют глубину, а не создают лишний шум.</span>
+                <strong>Собственный цех</strong>
+                <span>Заготовки и соусы готовятся на нашей кухне. Никаких готовых смесей и полуфабрикатов.</span>
               </div>
               <div class="signature-item">
-                <strong>Атмосфера ресторана</strong>
-                <span>Тёплая палитра и тактильные материалы вместо кричащих акцентов.</span>
+                <strong>Живое меню</strong>
+                <span>Обновляется по сезону. Актуальный состав — всегда на сайте, без устаревших позиций.</span>
               </div>
             </div>
           </article>
@@ -223,7 +255,7 @@
         </div>
         <div class="footer-meta">
           <span>© 2026 Marta</span>
-          <span>Restaurant • delivery</span>
+          <a href="{{ url_for('privacy_page') }}">Политика конфиденциальности</a>
         </div>
       </div>
     </footer>

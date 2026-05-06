@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Политика конфиденциальности — Marta</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}">Главная</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('index') }}#space">О нас</a>
+          <a href="{{ url_for('index') }}#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="tel:+78212291247" class="button-ghost">+7 (8212) 29-12-47</a>
+          <a href="{{ url_for('delivery_page') }}" class="button">Заказать</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('index') }}#space">О нас</a>
+        <a href="{{ url_for('index') }}#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
+        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+      </div>
+    </aside>
+
+    <main class="order-main">
+      <section class="container">
+        <article class="privacy-doc reveal">
+          <span class="eyebrow">Документ</span>
+          <h1 class="section-title">Политика конфиденциальности</h1>
+          <p class="lead">Дата последнего обновления: 6 мая 2026 г.</p>
+
+          <div class="privacy-body">
+            <h2>1. Общие положения</h2>
+            <p>
+              Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки персональных данных пользователей сайта, оформляющих доставку еды через ресторан Marta (далее — «Оператор»), расположенный по адресу: г. Сыктывкар, Сысольское шоссе, 1.
+            </p>
+            <p>
+              Оператор обрабатывает персональные данные в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».
+            </p>
+
+            <h2>2. Какие данные мы собираем</h2>
+            <p>При оформлении заказа на доставку мы собираем следующие данные:</p>
+            <ul>
+              <li>Имя (для обращения при доставке и уточнения заказа);</li>
+              <li>Номер телефона (для связи по вопросам доставки);</li>
+              <li>Адрес доставки: город, улица, дом, квартира или офис;</li>
+              <li>Комментарий к заказу (если вы его оставляете).</li>
+            </ul>
+
+            <h2>3. Цели обработки данных</h2>
+            <p>Персональные данные используются исключительно для:</p>
+            <ul>
+              <li>Оформления и исполнения заказа на доставку еды;</li>
+              <li>Связи с вами для уточнения деталей заказа;</li>
+              <li>Передачи информации о заказе в систему ресторана (Saby/SBIS) для его обработки и передачи на кухню.</li>
+            </ul>
+            <p>Данные не используются для маркетинга и не передаются третьим лицам, кроме случаев, указанных выше.</p>
+
+            <h2>4. Передача данных третьим лицам</h2>
+            <p>
+              Для обработки платежей данные передаются платёжному сервису ЮКасса (ООО «ЮМани», ОГРН 1065010001905) в соответствии с их <a href="https://yookassa.ru/docs/support/merchant/oferta/offer" target="_blank" rel="noopener">условиями обслуживания</a>. Номер карты и платёжные реквизиты Оператору не передаются и Оператором не хранятся.
+            </p>
+            <p>
+              Для обработки заказа данные передаются в систему управления рестораном Saby (ООО «Компания «ТЕНЗОР»).
+            </p>
+
+            <h2>5. Хранение данных</h2>
+            <p>
+              Данные, необходимые для обработки заказа (имя, телефон, адрес, состав заказа), хранятся в базе данных Оператора в течение срока, необходимого для исполнения заказа. После успешной оплаты и передачи заказа в систему ресторана данные удаляются из промежуточного хранилища.
+            </p>
+
+            <h2>6. Права субъекта персональных данных</h2>
+            <p>Вы вправе:</p>
+            <ul>
+              <li>Запросить информацию об обрабатываемых персональных данных;</li>
+              <li>Потребовать исправления неточных данных;</li>
+              <li>Потребовать удаления данных (право на забвение);</li>
+              <li>Отозвать согласие на обработку персональных данных.</li>
+            </ul>
+            <p>
+              Для реализации прав обратитесь по телефону <a href="tel:+78212291247">+7 (8212) 29-12-47</a> или лично по адресу ресторана.
+            </p>
+
+            <h2>7. Безопасность</h2>
+            <p>
+              Оператор принимает организационные и технические меры для защиты персональных данных от несанкционированного доступа, изменения, раскрытия или уничтожения. Передача данных осуществляется по зашифрованному каналу HTTPS.
+            </p>
+
+            <h2>8. Изменения Политики</h2>
+            <p>
+              Оператор вправе вносить изменения в настоящую Политику. Актуальная версия всегда доступна по адресу <a href="{{ url_for('privacy_page') }}">marta-restaurant.ru/privacy</a>.
+            </p>
+
+            <h2>9. Контакты</h2>
+            <p>
+              По вопросам обработки персональных данных:<br>
+              Ресторан Marta, г. Сыктывкар, Сысольское шоссе, 1<br>
+              Телефон: <a href="tel:+78212291247">+7 (8212) 29-12-47</a>
+            </p>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-meta">
+          <span>© 2026 Marta</span>
+          <a href="{{ url_for('privacy_page') }}">Политика конфиденциальности</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+</body>
+</html>

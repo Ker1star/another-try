@@ -25,6 +25,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   const menuMode = menuConfig.mode || 'restaurant';
   const menuApiUrl = menuConfig.apiUrl || '/api/menu';
 
+  const renderSkeleton = () => {
+    const skeletonSection = document.createElement('div');
+    skeletonSection.id = 'menuSkeleton';
+    skeletonSection.className = 'menu-skeleton';
+    for (let s = 0; s < 2; s++) {
+      const block = document.createElement('div');
+      block.className = 'skeleton-section';
+      const title = document.createElement('div');
+      title.className = 'skeleton-heading';
+      block.appendChild(title);
+      const grid = document.createElement('div');
+      grid.className = 'skeleton-grid';
+      for (let i = 0; i < 3; i++) {
+        const card = document.createElement('div');
+        card.className = 'skeleton-card';
+        card.innerHTML = '<div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div><div class="skeleton-line narrow"></div></div>';
+        grid.appendChild(card);
+      }
+      block.appendChild(grid);
+      skeletonSection.appendChild(block);
+    }
+    container.appendChild(skeletonSection);
+  };
+
+  const removeSkeleton = () => {
+    document.getElementById('menuSkeleton')?.remove();
+  };
+
+  renderSkeleton();
+
   try {
     const response = await fetch(menuApiUrl);
     if (!response.ok) {
@@ -32,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const { data: items } = await response.json();
+    removeSkeleton();
     const categories = items.filter(item => item.isParent && item.hierarchicalParent === null);
     const dishes = items.filter(item => !item.isParent);
 
@@ -51,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     if (!categories.length) {
+      removeSkeleton();
       container.innerHTML = `<div class="menu-empty">${menuMode === 'delivery' ? 'Сейчас в меню доставки нет доступных категорий.' : 'Сейчас в меню ресторана нет опубликованных категорий.'}</div>`;
       if (interactiveMode) {
         initCart();
@@ -204,7 +236,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (error) {
     console.error('Ошибка при загрузке меню:', error);
-    container.innerHTML = `<div class="menu-empty">${menuMode === 'delivery' ? 'Не удалось загрузить меню доставки. Попробуйте обновить страницу чуть позже.' : 'Не удалось загрузить меню ресторана. Попробуйте обновить страницу чуть позже.'}</div>`;
+    removeSkeleton();
+    const message = menuMode === 'delivery'
+      ? 'Не удалось загрузить меню доставки.'
+      : 'Не удалось загрузить меню ресторана.';
+    const errorBox = document.createElement('div');
+    errorBox.className = 'menu-load-error';
+    errorBox.innerHTML = `<p>${message}</p><button type="button" class="button-secondary" id="menuRetryBtn">Попробовать снова</button>`;
+    container.appendChild(errorBox);
+    document.getElementById('menuRetryBtn')?.addEventListener('click', () => {
+      window.location.reload();
+    });
     if (interactiveMode) {
       initCart();
     }

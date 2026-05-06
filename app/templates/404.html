@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Страница не найдена — Marta</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}">Главная</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('index') }}#space">О нас</a>
+          <a href="{{ url_for('index') }}#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="tel:+78212291247" class="button-ghost">+7 (8212) 29-12-47</a>
+          <a href="{{ url_for('delivery_page') }}" class="button">Заказать</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('index') }}#space">О нас</a>
+        <a href="{{ url_for('index') }}#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
+        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+      </div>
+    </aside>
+
+    <main class="order-main">
+      <section class="container">
+        <div class="not-found-wrap reveal">
+          <span class="eyebrow">Ошибка 404</span>
+          <h1 class="display-title">Страница не найдена.</h1>
+          <p class="lead" style="margin: 24px 0 32px; max-width: 520px;">
+            Возможно, ссылка устарела или адрес введён с ошибкой. Вернитесь на главную или перейдите в меню.
+          </p>
+          <div class="hero-actions">
+            <a href="{{ url_for('index') }}" class="button">На главную</a>
+            <a href="{{ url_for('delivery_page') }}" class="button-secondary">Меню доставки</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-meta">
+          <span>© 2026 Marta</span>
+          <a href="tel:+78212291247">+7 (8212) 29-12-47</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+</body>
+</html>

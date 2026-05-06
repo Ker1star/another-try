@@ -124,7 +124,12 @@
                 </div>
               </div>
 
-              <div id="orderMessage" class="message-box" hidden></div>
+              <div id="orderMessage" class="message-box" role="alert" aria-live="polite" hidden></div>
+
+              <label class="consent-label">
+                <input type="checkbox" id="consentCheck" name="consent">
+                <span>Я согласен(а) с <a href="{{ url_for('privacy_page') }}" target="_blank">политикой конфиденциальности</a> и даю согласие на обработку персональных данных</span>
+              </label>
 
               <div class="order-actions">
                 <button type="submit" class="button" id="submitOrder" disabled>Перейти к оплате</button>
@@ -158,7 +163,7 @@
       <div class="container">
         <div class="footer-meta">
           <span>© 2026 Marta</span>
-          <a href="tel:+78212291247">+7 (8212) 29-12-47</a>
+          <a href="{{ url_for('privacy_page') }}">Политика конфиденциальности</a>
         </div>
       </div>
     </footer>

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('orderForm');
   const submitButton = document.getElementById('submitOrder');
   const phoneInput = document.getElementById('phone');
+  const consentCheck = document.getElementById('consentCheck');
   const messageBox = document.getElementById('orderMessage');
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     totalEl.textContent = `${total.toFixed(0)} ₽`;
-    submitButton.disabled = false;
+    submitButton.disabled = consentCheck ? !consentCheck.checked : false;
   };
 
   phoneInput?.addEventListener('input', () => {
@@ -82,10 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderSummary();
 
+  consentCheck?.addEventListener('change', () => {
+    if (cart.length && consentCheck.checked) {
+      submitButton.disabled = false;
+    } else {
+      submitButton.disabled = true;
+    }
+  });
+
   form?.addEventListener('submit', async event => {
     event.preventDefault();
     if (!cart.length) {
       showMessage('Корзина пустая.', 'error');
+      return;
+    }
+    if (consentCheck && !consentCheck.checked) {
+      showMessage('Подтвердите согласие на обработку персональных данных.', 'error');
       return;
     }
 

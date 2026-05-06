@@ -139,6 +139,14 @@ def create_app():
     def index():
         return render_template('index.html')
 
+    @app.route('/privacy')
+    def privacy_page():
+        return render_template('privacy.html')
+
+    @app.errorhandler(404)
+    def not_found(_):
+        return render_template('404.html'), 404
+
     @app.cli.command("update-menu")
     @click.argument('point_id', required=False, default=None, type=int)
     @click.argument('price_list_id', required=False, default=None, type=int)
