@@ -3,7 +3,10 @@ import logging
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv

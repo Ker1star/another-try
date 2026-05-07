@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 Flask-Migrate
 psycopg2-binary
 yookassa
+backports.zoneinfo; python_version < "3.9"
