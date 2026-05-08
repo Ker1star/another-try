@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (!isNaN(n) && n > 0) {
             const weight = document.createElement('span');
             weight.className = 'weight';
-            weight.textContent = n < 1
-              ? `${Math.round(n * 1000)} г`
-              : `${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)} кг`;
+            weight.textContent = n >= 1000
+              ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)} кг`
+              : `${Math.round(n)} г`;
             meta.appendChild(weight);
           }
         }
