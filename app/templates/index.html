@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Марта — ресторан и доставка в Сыктывкаре</title>
   <meta name="description" content="Марта — тёплый городской ресторан в Сыктывкаре с доставкой, спокойной атмосферой и актуальным меню онлайн.">
-  <meta property="og:type" content="restaurant">
+  <meta property="og:type" content="website">
   <meta property="og:title" content="Марта — ресторан и доставка в Сыктывкаре">
   <meta property="og:description" content="Марта — тёплый городской ресторан в Сыктывкаре с доставкой, спокойной атмосферой и актуальным меню онлайн.">
+  <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
+  <meta property="og:url" content="{{ request.url }}">
   <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -124,7 +126,7 @@
 
           <div class="hero-visuals reveal delay-1">
             <article class="frame frame-hero">
-              <img src="{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}" alt="Интерьер ресторана Марта">
+              <img src="{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}" alt="Интерьер ресторана Марта" fetchpriority="high">
               <div class="frame-note">
                 <strong>Кирпич, дерево, кожа, мягкий свет</strong>
                 <span>Интерьер с характером, но без тяжести и визуального давления.</span>
@@ -132,10 +134,10 @@
             </article>
             <div class="frame-row">
               <article class="frame">
-                <img src="{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}" alt="Барная стойка ресторана Марта">
+                <img src="{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}" alt="Барная стойка ресторана Марта" loading="lazy">
               </article>
               <article class="frame">
-                <img src="{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}" alt="Меню ресторана Марта">
+                <img src="{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}" alt="Меню ресторана Марта" loading="lazy">
               </article>
             </div>
           </div>
@@ -167,7 +169,7 @@
           </article>
 
           <article class="panel media-panel reveal delay-1">
-            <img src="{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}" alt="Зал ресторана Марта">
+            <img src="{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}" alt="Зал ресторана Марта" loading="lazy">
             <div class="panel-content">
               <span class="eyebrow">Пространство</span>
               <h2 class="panel-title">Локальное место, в котором хочется задержаться.</h2>
@@ -192,7 +194,7 @@
           </article>
           <div class="gallery-stack reveal delay-1">
             <article class="frame">
-              <img src="{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}" alt="Винная полка в ресторане Марта">
+              <img src="{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}" alt="Винная полка в ресторане Марта" loading="lazy">
             </article>
           </div>
         </div>

@@ -8,6 +8,8 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Доставка — Marta">
   <meta property="og:description" content="Меню доставки Marta в Сыктывкаре: актуальные позиции, корзина и оформление заказа онлайн.">
+  <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
+  <meta property="og:url" content="{{ request.url }}">
   <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,5 +146,15 @@
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
+  <script>
+    try {
+      var _cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      var _count = _cart.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      if (_count > 0) {
+        var _badge = document.getElementById('cartCount');
+        if (_badge) _badge.textContent = String(_count);
+      }
+    } catch (e) {}
+  </script>
 </body>
 </html>

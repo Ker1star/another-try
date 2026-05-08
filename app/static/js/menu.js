@@ -168,6 +168,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const meta = document.createElement('div');
         meta.className = 'menu-meta';
 
+        const rawQty = dish.attributes?.outQuantity;
+        if (rawQty != null && String(rawQty).trim() !== '') {
+          const n = parseFloat(rawQty);
+          if (!isNaN(n) && n > 0) {
+            const weight = document.createElement('span');
+            weight.className = 'weight';
+            weight.textContent = n < 1
+              ? `${Math.round(n * 1000)} г`
+              : `${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)} кг`;
+            meta.appendChild(weight);
+          }
+        }
+
         const price = document.createElement('span');
         price.className = 'price';
         const numericPrice = Number(dish.price);

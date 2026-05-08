@@ -942,21 +942,34 @@ button {
   }
 
   .section {
-    padding: 76px 0;
+    padding: 64px 0;
+  }
+
+  .section.compact {
+    padding: 50px 0;
   }
 
   .hero-visuals {
-    grid-template-rows: minmax(300px, 360px) auto;
+    grid-template-rows: minmax(260px, 320px) auto;
   }
 
   .frame-row {
     grid-template-columns: 1fr;
   }
 
+  .frame-row .frame {
+    max-height: 220px;
+    overflow: hidden;
+  }
+
+  .panel.media-panel img {
+    min-height: 280px;
+  }
+
   .page-card,
   .panel,
   .order-card {
-    padding: 22px;
+    padding: 20px;
   }
 
   .footer-meta {
@@ -965,5 +978,54 @@ button {
 
   .nav-actions .button {
     display: none;
+  }
+
+  .order-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .display-title {
+    font-size: clamp(2rem, 8.5vw, 3rem);
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 6.5vw, 2.4rem);
+  }
+
+  .panel-title {
+    font-size: clamp(1.4rem, 5vw, 1.85rem);
+  }
+
+  .section {
+    padding: 48px 0;
+  }
+
+  .section.compact {
+    padding: 36px 0;
+  }
+
+  .hero-visuals {
+    grid-template-rows: minmax(200px, 240px) auto;
+  }
+
+  .hero-lead {
+    font-size: 0.95rem;
+    margin: 16px 0 22px;
+  }
+
+  .hero-facts {
+    gap: 8px;
+  }
+
+  .fact-card {
+    padding: 14px;
+  }
+
+  .panel,
+  .order-card,
+  .page-card {
+    padding: 18px;
   }
 }
