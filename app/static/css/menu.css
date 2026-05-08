@@ -151,6 +151,11 @@
   margin-top: 2px;
 }
 
+.btn-add.btn-adding {
+  background: var(--success);
+  box-shadow: 0 8px 20px rgba(47, 122, 88, 0.2);
+}
+
 .menu-main .page-hero {
   padding: 28px 0 18px;
 }

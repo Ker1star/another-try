@@ -81,6 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       return leftIndex - rightIndex;
     });
 
+    const categorySlugs = categories.map(category => slugify(category.name));
+
     if (!categories.length) {
       removeSkeleton();
       container.innerHTML = `<div class="menu-empty">${menuMode === 'delivery' ? 'Сейчас в меню доставки нет доступных категорий.' : 'Сейчас в меню ресторана нет опубликованных категорий.'}</div>`;
@@ -94,7 +96,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tabItem = document.createElement('li');
       const tab = document.createElement('a');
       tab.className = 'category-tab';
-      tab.href = `#${slugify(category.name)}`;
+      tab.href = `#${categorySlugs[index]}`;
+      tab.dataset.slug = categorySlugs[index];
       tab.textContent = category.name;
       if (index === 0) {
         tab.classList.add('active');
@@ -109,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const section = document.createElement('section');
       section.className = `menu-section reveal${index ? ' delay-1' : ''}`;
 
-      const sectionId = slugify(category.name);
+      const sectionId = categorySlugs[index];
       const heading = document.createElement('h2');
       heading.className = 'menu-category';
       heading.id = sectionId;
@@ -147,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         image.src = dish.images?.length ? dish.images[0] : '/static/images/logo-heart.jpg';
         image.alt = dish.name;
         image.loading = 'lazy';
+        image.onerror = () => { image.onerror = null; image.src = '/static/images/logo-heart.jpg'; };
         media.appendChild(image);
 
         const info = document.createElement('div');
@@ -176,7 +180,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           action.type = 'button';
           action.className = 'button btn-add';
           action.textContent = 'Добавить в корзину';
-          action.addEventListener('click', () => addToCart(dish));
+          action.addEventListener('click', () => {
+            addToCart(dish);
+            action.textContent = 'Добавлено ✓';
+            action.classList.add('btn-adding');
+            setTimeout(() => {
+              action.textContent = 'Добавить в корзину';
+              action.classList.remove('btn-adding');
+            }, 1400);
+          });
           info.appendChild(action);
         }
 
@@ -193,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabsList.querySelectorAll('.category-tab').forEach(tab => {
       tab.addEventListener('click', event => {
         event.preventDefault();
-        const target = document.getElementById(tab.hash.slice(1));
+        const target = document.getElementById(tab.dataset.slug);
         if (!target) {
           return;
         }
@@ -201,21 +213,43 @@ document.addEventListener('DOMContentLoaded', async () => {
           top: target.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET,
           behavior: 'smooth'
         });
+        tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       });
     });
+
+    const visibleSections = new Set();
+    const updateActiveTab = () => {
+      if (!visibleSections.size) return;
+      let topmostId = null;
+      let topmostY = Infinity;
+      visibleSections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const y = el.getBoundingClientRect().top;
+          if (y < topmostY) { topmostY = y; topmostId = id; }
+        }
+      });
+      if (!topmostId) return;
+      tabsList.querySelectorAll('.category-tab').forEach(link => link.classList.remove('active'));
+      const activeTab = tabsList.querySelector(`.category-tab[data-slug="${topmostId}"]`);
+      if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    };
 
     const tabsObserver = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          const targetLink = tabsList.querySelector(`.category-tab[href="#${entry.target.id}"]`);
-          if (!targetLink || !entry.isIntersecting) {
-            return;
+          if (entry.isIntersecting) {
+            visibleSections.add(entry.target.id);
+          } else {
+            visibleSections.delete(entry.target.id);
           }
-          tabsList.querySelectorAll('.category-tab').forEach(link => link.classList.remove('active'));
-          targetLink.classList.add('active');
         });
+        updateActiveTab();
       },
-      { rootMargin: '-40% 0px -48% 0px', threshold: 0.01 }
+      { rootMargin: `-${NAV_OFFSET}px 0px -50% 0px`, threshold: 0 }
     );
     observedSections.forEach(section => tabsObserver.observe(section));
 
