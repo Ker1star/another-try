@@ -245,6 +245,7 @@ button {
 
 .menu-toggle {
   display: none;
+  flex-direction: column;
   width: 46px;
   height: 46px;
   align-items: center;
@@ -299,14 +300,33 @@ button {
   top: 0;
   right: 0;
   width: min(360px, 88vw);
-  height: 100vh;
-  padding: 108px 24px 24px;
+  height: 100dvh;
+  padding: 88px 24px 24px;
+  overflow-y: auto;
   background: rgba(252, 247, 241, 0.98);
   border-left: 1px solid var(--line);
   box-shadow: -16px 0 40px rgba(53, 35, 24, 0.1);
   transform: translateX(104%);
   transition: transform 220ms ease;
   z-index: 1210;
+}
+
+.mobile-nav-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink);
 }
 
 .mobile-nav.open {

@@ -42,6 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
     openMobileNav();
   });
 
+  if (mobileNav) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'mobile-nav-close';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Закрыть меню');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', closeMobileNav);
+    mobileNav.insertBefore(closeBtn, mobileNav.firstChild);
+  }
+
   backdrop?.addEventListener('click', closeMobileNav);
   mobileNav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMobileNav));
   window.addEventListener('resize', () => {
