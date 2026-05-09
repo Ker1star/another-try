@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       customerName: form.customerName.value.trim(),
       phone: form.phone.value.trim(),
+      email: form.email.value.trim(),
       address: {
         city: form.city.value.trim(),
         street: form.street.value.trim(),

@@ -10,8 +10,8 @@ from app import db
 from app.models import PendingOrder
 from app.services.order import (
     PrestoOrderError,
+    _load_menu_items,
     build_order_payload,
-    calculate_order_total,
     create_order,
 )
 
@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 YOOKASSA_SHOP_ID = os.getenv('YOOKASSA_SHOP_ID')
 YOOKASSA_SECRET_KEY = os.getenv('YOOKASSA_SECRET_KEY')
+# 1 = без НДС (УСН), 2 = НДС 0%, 4 = НДС 20% (ОСНО)
+YOOKASSA_VAT_CODE = int(os.getenv('YOOKASSA_VAT_CODE', '1'))
 
 _YOOKASSA_NETWORKS = [
     ip_network('185.71.76.0/27'),
@@ -48,11 +50,56 @@ def _is_trusted_ip(remote_ip: str) -> bool:
         return False
 
 
+def _normalize_phone_e164(phone: str) -> str:
+    """Convert any Russian phone format to E.164 (+7XXXXXXXXXX)."""
+    digits = ''.join(c for c in phone if c.isdigit())
+    if len(digits) == 11 and digits.startswith('8'):
+        digits = '7' + digits[1:]
+    return f'+{digits}'
+
+
+def _build_receipt(payload: dict, menu_map: dict) -> dict:
+    """Build YooKassa receipt object for 54-FZ fiscalization."""
+    raw_items = payload.get('items') or []
+    phone = _normalize_phone_e164((payload.get('phone') or '').strip())
+    email = (payload.get('email') or '').strip()
+    if not email:
+        raise ValueError('Укажите электронную почту — на неё ЮКасса отправит чек.')
+
+    customer = {'phone': phone, 'email': email}
+
+    items = []
+    for item in raw_items:
+        if item.get('id') is None:
+            continue
+        menu_item = menu_map[item['id']]
+        qty = max(1, int(item.get('qty') or 1))
+        price = float(menu_item.price or 0)
+        items.append({
+            'description': menu_item.name[:128],
+            'quantity': f'{qty:.3f}',
+            'amount': {'value': f'{price:.2f}', 'currency': 'RUB'},
+            'vat_code': YOOKASSA_VAT_CODE,
+            'payment_mode': 'full_payment',
+            'payment_subject': 'commodity',
+        })
+
+    return {'customer': customer, 'items': items}
+
+
 def create_payment(payload: dict, *, base_url: str) -> dict:
     _configure()
 
     raw_items = payload.get('items') or []
-    total = calculate_order_total(raw_items)
+    # Load menu items once — used both for total calculation and receipt building.
+    # _load_menu_items also validates availability for delivery.
+    menu_map = _load_menu_items(raw_items)
+
+    total = sum(
+        float(menu_map[item['id']].price or 0) * max(1, int(item.get('qty') or 1))
+        for item in raw_items
+        if item.get('id') is not None
+    )
     if total <= 0:
         raise ValueError('Сумма заказа должна быть больше нуля.')
 
@@ -69,6 +116,7 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
             'capture': True,
             'description': 'Заказ в ресторане Marta',
             'metadata': {'base_url': base_url},
+            'receipt': _build_receipt(payload, menu_map),
         },
         str(uuid.uuid4()),
     )
