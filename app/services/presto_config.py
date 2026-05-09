@@ -32,3 +32,7 @@ def get_point_id():
 
 def get_price_list_id():
     return _get_int_env(['PRESTO_PRICE_LIST_ID', 'PRICE_LIST_ID'], 74)
+
+
+def get_price_list_id_delivery():
+    return _get_int_env(['PRESTO_PRICE_LIST_ID_DELIVERY', 'PRICE_LIST_ID_DELIVERY'], None)

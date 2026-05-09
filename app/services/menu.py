@@ -7,7 +7,7 @@ from urllib.parse import quote
 from app import db
 from app.models import Category, MenuItem
 from app.services.auth import get_menu as fetch_sbis_menu
-from app.services.presto_config import get_point_id, get_price_list_id
+from app.services.presto_config import get_point_id, get_price_list_id, get_price_list_id_delivery
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,27 @@ def build_image_proxy_path(image_param: str | None) -> str:
     return f"/api/img?params={quote(image_param, safe='')}"
 
 
-def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
+def upsert_menu(
+    point_id: int | None = None,
+    price_list_id: int | None = None,
+    price_list_id_delivery: int | None = None,
+):
     point_id = point_id or get_point_id()
     price_list_id = price_list_id or get_price_list_id()
+    if price_list_id_delivery is None:
+        price_list_id_delivery = get_price_list_id_delivery()
+
     items = fetch_sbis_menu(point_id=point_id, price_list_id=price_list_id)
+
+    delivery_sbis_ids: set | None = None
+    if price_list_id_delivery is not None:
+        delivery_items = fetch_sbis_menu(point_id=point_id, price_list_id=price_list_id_delivery)
+        delivery_sbis_ids = {
+            entry['hierarchicalId']
+            for entry in delivery_items
+            if not entry['isParent']
+        }
+        logger.info("Delivery price list fetched: %d items.", len(delivery_sbis_ids))
 
     existing_cats = {category.sbis_id: category for category in Category.query.all()}
     existing_items = {item.sbis_id: item for item in MenuItem.query.all()}
@@ -88,7 +105,14 @@ def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
             item.description_simple = descr
             item.out_quantity = out_qty
             item.image_path = image_path
+            if delivery_sbis_ids is not None:
+                item.available_for_delivery = sbis_id in delivery_sbis_ids
         else:
+            available = (
+                sbis_id in delivery_sbis_ids
+                if delivery_sbis_ids is not None
+                else _default_delivery_available()
+            )
             item = MenuItem(
                 sbis_id=sbis_id,
                 presto_id=presto_id,
@@ -100,7 +124,7 @@ def upsert_menu(point_id: int | None = None, price_list_id: int | None = None):
                 description_simple=descr,
                 out_quantity=out_qty,
                 image_path=image_path,
-                available_for_delivery=_default_delivery_available(),
+                available_for_delivery=available,
             )
             db.session.add(item)
 
