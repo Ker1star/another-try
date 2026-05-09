@@ -170,13 +170,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const rawQty = dish.attributes?.outQuantity;
         if (rawQty != null && String(rawQty).trim() !== '') {
-          const n = parseFloat(rawQty);
-          if (!isNaN(n) && n > 0) {
+          const parts = String(rawQty).split('/').map(p => parseFloat(p.trim())).filter(n => !isNaN(n) && n > 0);
+          if (parts.length) {
+            const fmtKg = n => `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)} кг`;
+            let weightText;
+            if (parts.every(n => n < 1000)) {
+              weightText = parts.map(n => Math.round(n)).join('/') + ' г';
+            } else {
+              weightText = parts.map(n => n >= 1000 ? fmtKg(n) : `${Math.round(n)} г`).join('/');
+            }
             const weight = document.createElement('span');
             weight.className = 'weight';
-            weight.textContent = n >= 1000
-              ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)} кг`
-              : `${Math.round(n)} г`;
+            weight.textContent = weightText;
             meta.appendChild(weight);
           }
         }
