@@ -1082,7 +1082,7 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
-  align-items: start;
+  align-items: center;
 }
 
 .about-hero-copy {
@@ -1092,10 +1092,32 @@ button {
   padding-top: 24px;
 }
 
+.about-hero-photos {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 8px;
+}
+
+.about-hero-photos .frame-hero {
+  min-height: unset;
+  aspect-ratio: 2 / 3;
+}
+
 .about-hero-photos .frame-hero img {
-  height: 380px;
-  object-fit: cover;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-hero-photos .frame-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-hero-photos .frame-row .frame {
+  flex: 1;
+  min-height: 0;
 }
 
 .split-layout--reversed {
@@ -1178,6 +1200,10 @@ button {
   .about-hero-grid,
   .about-closing {
     grid-template-columns: 1fr;
+  }
+
+  .about-hero-photos {
+    max-height: 400px;
   }
 
   .about-food-grid {
