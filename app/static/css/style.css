@@ -1075,21 +1075,27 @@ button {
 }
 
 .about-hero-section {
-  padding-top: 40px;
+  padding-top: 56px;
+  padding-bottom: 40px;
 }
 
 .about-hero-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: center;
+  gap: 64px;
+  align-items: stretch;
 }
 
 .about-hero-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 24px;
+  gap: 20px;
+  padding: 12px 0;
+}
+
+.about-hero-title {
+  margin: 0;
 }
 
 .about-hero-photos {
@@ -1100,7 +1106,6 @@ button {
 
 .about-hero-photos .frame-hero {
   min-height: unset;
-  aspect-ratio: 2 / 3;
 }
 
 .about-hero-photos .frame-hero img {
@@ -1202,8 +1207,8 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .about-hero-photos {
-    max-height: 400px;
+  .about-hero-photos .frame-hero {
+    aspect-ratio: 4 / 3;
   }
 
   .about-food-grid {
