@@ -610,6 +610,30 @@ button {
   color: var(--muted);
 }
 
+.schedule {
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.schedule-row span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  min-width: 80px;
+}
+
+.schedule-row b {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
 .gallery-ribbon {
   display: grid;
   grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
