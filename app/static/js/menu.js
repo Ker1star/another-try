@@ -315,6 +315,9 @@ function initCart() {
   const total = document.getElementById('cartTotal');
   const checkout = document.getElementById('checkoutBtn');
   const countBadge = document.getElementById('cartCount');
+  const stickyCart = document.getElementById('stickyCart');
+  const stickyCount = document.getElementById('stickyCartCount');
+  const stickyTotal = document.getElementById('stickyCartTotal');
 
   if (!list || !total || !checkout || !countBadge) {
     return;
@@ -325,12 +328,14 @@ function initCart() {
   const openCart = () => {
     overlay?.classList.add('open');
     sidebar?.classList.add('open');
+    document.body.classList.add('cart-open');
     document.body.style.overflow = 'hidden';
   };
 
   const closeCart = () => {
     overlay?.classList.remove('open');
     sidebar?.classList.remove('open');
+    document.body.classList.remove('cart-open');
     document.body.style.overflow = '';
   };
 
@@ -408,9 +413,20 @@ function initCart() {
       list.appendChild(row);
     });
 
+    const totalCount = state.reduce((sum, item) => sum + (item.qty || 1), 0);
     total.textContent = `${amount.toFixed(0)} ₽`;
-    countBadge.textContent = String(state.reduce((sum, item) => sum + (item.qty || 1), 0));
+    countBadge.textContent = String(totalCount);
     checkout.disabled = state.length === 0;
+
+    if (stickyCart) {
+      if (totalCount > 0) {
+        stickyCart.hidden = false;
+        if (stickyCount) stickyCount.textContent = String(totalCount);
+        if (stickyTotal) stickyTotal.textContent = `${amount.toFixed(0)} ₽`;
+      } else {
+        stickyCart.hidden = true;
+      }
+    }
   };
 
   const persist = () => {
@@ -442,6 +458,7 @@ function initCart() {
 
   openButton?.addEventListener('click', openCart);
   openMobileButton?.addEventListener('click', openCart);
+  stickyCart?.addEventListener('click', openCart);
   closeButton?.addEventListener('click', closeCart);
   overlay?.addEventListener('click', closeCart);
 
