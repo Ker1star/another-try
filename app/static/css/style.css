@@ -1056,3 +1056,160 @@ button {
     padding: 18px;
   }
 }
+
+/* ── About page ─────────────────────────────────────────── */
+
+.about-logo {
+  display: block;
+  max-width: 280px;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.about-hero-section {
+  padding-top: 40px;
+}
+
+.about-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.about-hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.about-hero-photos .frame-hero img {
+  height: 380px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.split-layout--reversed {
+  direction: rtl;
+}
+
+.split-layout--reversed > * {
+  direction: ltr;
+}
+
+.about-food-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.about-food-frame {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.about-food-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 400ms ease;
+}
+
+.about-food-frame:hover img {
+  transform: scale(1.04);
+}
+
+.about-interior-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+.about-interior-frame {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.about-interior-frame img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+  transition: transform 400ms ease;
+}
+
+.about-interior-frame--tall {
+  grid-row: span 2;
+}
+
+.about-interior-frame--tall img {
+  height: 100%;
+  min-height: 500px;
+}
+
+.about-interior-frame:hover img {
+  transform: scale(1.03);
+}
+
+.about-closing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.about-closing-stats {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .about-hero-grid,
+  .about-closing {
+    grid-template-columns: 1fr;
+  }
+
+  .about-food-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-interior-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .about-interior-frame--tall {
+    grid-row: span 1;
+  }
+
+  .about-interior-frame--tall img {
+    height: 320px;
+    min-height: unset;
+  }
+}
+
+@media (max-width: 720px) {
+  .about-logo {
+    max-width: 200px;
+  }
+
+  .about-food-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .about-food-frame {
+    aspect-ratio: 1;
+  }
+
+  .about-interior-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-interior-frame img {
+    height: 240px;
+  }
+}
+}

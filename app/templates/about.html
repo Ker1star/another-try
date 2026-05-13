@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>О нас — Marta</title>
+  <meta name="description" content="История ресторана Marta в Сыктывкаре: с 2009 года, собственный мясной цех, рецепты из Германии и Чехии.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="О нас — Marta">
+  <meta property="og:description" content="История ресторана Marta в Сыктывкаре: с 2009 года, собственный мясной цех, рецепты из Германии и Чехии.">
+  <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
+  <meta property="og:url" content="{{ request.url }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/лого.PNG') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="about-page">
+  <div class="page-shell">
+    <div class="mobile-backdrop"></div>
+
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy">
+            <strong>Marta</strong>
+            <span>restaurant • delivery</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Основная навигация">
+          <a href="{{ url_for('index') }}">Главная</a>
+          <a href="{{ url_for('menu_page') }}">Меню</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('about_page') }}" class="active">О нас</a>
+          <a href="{{ url_for('index') }}#visit">Контакты</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="tel:+78212291247" class="button-ghost">+7 (8212) 29-12-47</a>
+          <a href="{{ url_for('delivery_page') }}" class="button">Заказать</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="mobile-nav" aria-label="Мобильная навигация">
+      <nav class="mobile-nav-links">
+        <a href="{{ url_for('index') }}">Главная</a>
+        <a href="{{ url_for('menu_page') }}">Меню</a>
+        <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('about_page') }}">О нас</a>
+        <a href="{{ url_for('index') }}#visit">Контакты</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
+        <a href="tel:+78212291247" class="button-secondary">Позвонить</a>
+      </div>
+    </aside>
+
+    <main>
+
+      <!-- Hero: logo + headline + hero photo -->
+      <section class="section about-hero-section">
+        <div class="container about-hero-grid">
+          <div class="about-hero-copy reveal">
+            <img
+              src="{{ url_for('static', filename='images/лого.PNG') }}"
+              alt="Marta — кафе и банкет холл"
+              class="about-logo"
+              loading="eager">
+            <p class="lead">
+              Марта появилась в 2009 году — из желания Михаила воссоздать вкусы, которые он запомнил ещё во время службы в Германии. Жареные колбаски, сытное пюре, тушёная капуста — простая, честная еда, которой в Сыктывкаре тогда просто не было.
+            </p>
+            <div class="hero-facts">
+              <div class="fact-card">
+                <strong>С 2009 года</strong>
+                <span>В городе</span>
+              </div>
+              <div class="fact-card">
+                <strong>Свой цех</strong>
+                <span>Без полуфабрикатов</span>
+              </div>
+              <div class="fact-card">
+                <strong>Ежедневно</strong>
+                <span>с 12:00 до 23:00</span>
+              </div>
+            </div>
+          </div>
+          <div class="about-hero-photos reveal delay-1">
+            <article class="frame frame-hero">
+              <img
+                src="{{ url_for('static', filename='images/about/hall-banquet.jpg') }}"
+                alt="Банкетный зал ресторана Марта"
+                loading="eager"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}'">
+            </article>
+            <div class="frame-row">
+              <article class="frame">
+                <img
+                  src="{{ url_for('static', filename='images/about/candle.jpg') }}"
+                  alt="Атмосфера ресторана Марта"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}'">
+              </article>
+              <article class="frame">
+                <img
+                  src="{{ url_for('static', filename='images/about/cabinet.jpg') }}"
+                  alt="Интерьер ресторана Марта"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}'">
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Story: Germany trip -->
+      <section class="section compact">
+        <div class="container split-layout">
+          <article class="panel reveal">
+            <span class="eyebrow">Путешествие за рецептами</span>
+            <h2 class="panel-title">Германия, Чехия и французский секрет пюре.</h2>
+            <p class="lead">
+              Чтобы найти настоящие рецепты, команда отправилась в Германию и Чехию — пробовали, расспрашивали поваров, привозили технологии. Друзья помогли раздобыть во Франции рецепт пюре, который до сих пор остаётся одним из наших фирменных секретов.
+            </p>
+            <p class="lead">
+              Несколько лет назад мы выросли из Фрау Марты в просто Марту — европейский ресторан с немецким характером и широким меню. Название стало короче, подход остался прежним.
+            </p>
+          </article>
+
+          <article class="panel media-panel reveal delay-1">
+            <img
+              src="{{ url_for('static', filename='images/about/hall-private.jpg') }}"
+              alt="Приватный зал ресторана Марта"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}'">
+            <div class="panel-content">
+              <span class="eyebrow">Пространство</span>
+              <h2 class="panel-title">Два зала и лаундж — для любого формата встречи.</h2>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Craft: own workshop -->
+      <section class="section compact">
+        <div class="container split-layout split-layout--reversed">
+          <article class="panel media-panel reveal">
+            <img
+              src="{{ url_for('static', filename='images/about/meats.jpg') }}"
+              alt="Собственные мясные блюда Марта"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/rostbif.JPG') }}'">
+          </article>
+
+          <article class="panel reveal delay-1">
+            <span class="eyebrow">Собственный цех</span>
+            <h2 class="panel-title">Никаких усилителей вкуса. Никаких полуфабрикатов.</h2>
+            <p class="lead">
+              Сегодня у нас собственный мясной цех — мы перерабатываем мясо и делаем колбасы полностью самостоятельно. Просто потому что готовим для себя: Михаил, команда и друзья едят здесь каждый день.
+            </p>
+            <div class="signature-list">
+              <div class="signature-item">
+                <strong>Своё мясо</strong>
+                <span>Перерабатываем и делаем колбасы сами — от заготовки до тарелки.</span>
+              </div>
+              <div class="signature-item">
+                <strong>Без лишнего</strong>
+                <span>Никаких усилителей, стабилизаторов и готовых смесей в производстве.</span>
+              </div>
+              <div class="signature-item">
+                <strong>Каждый день</strong>
+                <span>Цех работает ежедневно. Свежие заготовки — это не лозунг, а расписание.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Food gallery -->
+      <section class="section compact">
+        <div class="container">
+          <div class="about-food-grid reveal">
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/cocotte.jpg') }}"
+                alt="Горячее блюдо в чугунке Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/oven-full.jpg') }}'">
+            </article>
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/cheesecake.jpg') }}"
+                alt="Десерт ресторана Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}'">
+            </article>
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/pate.jpg') }}"
+                alt="Паштет с тостами Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/carbon.jpg') }}'">
+            </article>
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/shrimp.jpg') }}"
+                alt="Блюдо из морепродуктов Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/krevet.jpg') }}'">
+            </article>
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/cheese.jpg') }}"
+                alt="Сырная тарелка Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}'">
+            </article>
+            <article class="frame about-food-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/bar.jpg') }}"
+                alt="Барная стойка Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}'">
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interior gallery -->
+      <section class="section compact">
+        <div class="container">
+          <div class="about-interior-grid reveal">
+            <article class="frame about-interior-frame about-interior-frame--tall">
+              <img
+                src="{{ url_for('static', filename='images/about/lounge.jpg') }}"
+                alt="Лаунж-зона ресторана Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}'">
+            </article>
+            <article class="frame about-interior-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/hall-banquet.jpg') }}"
+                alt="Банкетный зал ресторана Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}'">
+            </article>
+            <article class="frame about-interior-frame">
+              <img
+                src="{{ url_for('static', filename='images/about/hall-private.jpg') }}"
+                alt="Приватный зал ресторана Марта"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/interior1.jpg') }}'">
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Closing: 15 years -->
+      <section class="section compact" id="about-closing">
+        <div class="container about-closing reveal">
+          <div class="about-closing-text">
+            <span class="eyebrow">Итого</span>
+            <h2 class="section-title">15 лет в городе. Те же стандарты. Те же гости, которые возвращаются.</h2>
+            <div class="hero-actions">
+              <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
+              <a href="{{ url_for('menu_page') }}" class="button-secondary">Посмотреть меню</a>
+            </div>
+          </div>
+          <div class="about-closing-stats">
+            <div class="stat-box">
+              <strong>2009</strong>
+              <span>Год открытия. Порции не уменьшались.</span>
+            </div>
+            <div class="stat-box">
+              <strong>Свой цех</strong>
+              <span>Мясо, колбасы и заготовки собственного производства.</span>
+            </div>
+            <div class="stat-box">
+              <strong>Без компромиссов</strong>
+              <span>Никаких усилителей, никаких полуфабрикатов — так было с первого дня.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-shell">
+          <div>
+            <h2>Marta</h2>
+            <p>Городской ресторан с камерной атмосферой и доставкой без лишней сложности.</p>
+          </div>
+          <div>
+            <h3>Навигация</h3>
+            <p><a href="{{ url_for('menu_page') }}">Меню</a></p>
+            <p><a href="{{ url_for('delivery_page') }}">Доставка</a></p>
+            <p><a href="{{ url_for('index') }}#visit">Контакты</a></p>
+          </div>
+          <div>
+            <h3>Контакты</h3>
+            <p><a href="tel:+78212291247">+7 (8212) 29-12-47</a></p>
+            <p>Сыктывкар, Сысольское ш., 1</p>
+          </div>
+        </div>
+        <div class="footer-meta">
+          <span>© 2026 Marta · ООО «Твин», ИНН&nbsp;1101075710</span>
+          <a href="{{ url_for('privacy_page') }}">Политика конфиденциальности</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+</body>
+</html>

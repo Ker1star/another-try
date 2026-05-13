@@ -10,7 +10,7 @@
   <meta property="og:description" content="Актуальное ресторанное меню Марта в Сыктывкаре: блюда, фото, цены и отметки доступности в доставке.">
   <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
   <meta property="og:url" content="{{ request.url }}">
-  <link rel="icon" href="{{ url_for('static', filename='images/logo-heart.jpg') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/лого.PNG') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
           <a href="{{ url_for('index') }}">Главная</a>
           <a href="{{ url_for('menu_page') }}" class="active">Меню</a>
           <a href="{{ url_for('delivery_page') }}">Доставка</a>
-          <a href="{{ url_for('index') }}#space">Пространство</a>
+          <a href="{{ url_for('about_page') }}">О нас</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
 
@@ -55,7 +55,7 @@
         <a href="{{ url_for('index') }}">Главная</a>
         <a href="{{ url_for('menu_page') }}">Меню</a>
         <a href="{{ url_for('delivery_page') }}">Доставка</a>
-        <a href="{{ url_for('index') }}#space">Пространство</a>
+        <a href="{{ url_for('about_page') }}">О нас</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
       <div class="mobile-nav-actions">

@@ -139,6 +139,10 @@ def create_app():
     def index():
         return render_template('index.html')
 
+    @app.route('/about')
+    def about_page():
+        return render_template('about.html')
+
     @app.route('/privacy')
     def privacy_page():
         return render_template('privacy.html')
