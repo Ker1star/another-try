@@ -95,38 +95,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const dateInput = document.getElementById('res-date');
-  const timeInput = document.getElementById('res-time');
+  const timeSelect = document.getElementById('res-time');
 
-  if (dateInput && timeInput) {
-    const toLocalDateStr = (d) => {
-      const pad = n => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  if (dateInput && timeSelect) {
+    const pad = n => String(n).padStart(2, '0');
+    const toLocalDateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const roundUpTo15 = d => new Date(Math.ceil((d.getTime() + 60000) / (15 * 60000)) * (15 * 60000));
+
+    const allSlots = [];
+    for (let h = 12; h <= 22; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 22 && m > 30) break;
+        allSlots.push(`${pad(h)}:${pad(m)}`);
+      }
+    }
+
+    const populateTime = (minTime = '12:00') => {
+      const prev = timeSelect.value;
+      timeSelect.innerHTML = '<option value="">— время —</option>';
+      allSlots.forEach(slot => {
+        if (slot < minTime) return;
+        const opt = document.createElement('option');
+        opt.value = slot;
+        opt.textContent = slot;
+        timeSelect.appendChild(opt);
+      });
+      if (prev && prev >= minTime) timeSelect.value = prev;
     };
 
-    const roundUpTo15 = (d) => {
-      const ms = 15 * 60 * 1000;
-      return new Date(Math.ceil(d.getTime() / ms) * ms);
-    };
-
-    const updateTimeMin = () => {
+    const syncTime = () => {
       const now = new Date();
-      const todayStr = toLocalDateStr(now);
-      if (dateInput.value === todayStr) {
-        const rounded = roundUpTo15(now);
-        const pad = n => String(n).padStart(2, '0');
-        const minTime = `${pad(rounded.getHours())}:${pad(rounded.getMinutes())}`;
-        timeInput.min = minTime > '22:30' ? '23:59' : minTime;
-        if (timeInput.value && timeInput.value < timeInput.min) {
-          timeInput.value = '';
-        }
+      if (dateInput.value === toLocalDateStr(now)) {
+        const earliest = roundUpTo15(now);
+        populateTime(`${pad(earliest.getHours())}:${pad(earliest.getMinutes())}`);
       } else {
-        timeInput.min = '12:00';
+        populateTime();
       }
     };
 
     dateInput.min = toLocalDateStr(new Date());
-    dateInput.addEventListener('change', updateTimeMin);
-    updateTimeMin();
+    dateInput.addEventListener('change', syncTime);
+    populateTime();
   }
 
   const reserveForm = document.getElementById('reserve-form');
