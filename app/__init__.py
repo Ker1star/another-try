@@ -1,8 +1,9 @@
 import os
 
 import click
+import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -146,6 +147,51 @@ def create_app():
     @app.route('/privacy')
     def privacy_page():
         return render_template('privacy.html')
+
+    @app.route('/reserve', methods=['POST'])
+    def reserve():
+        data = request.get_json(silent=True) or request.form
+        name = (data.get('name') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        date = (data.get('date') or '').strip()
+        time_ = (data.get('time') or '').strip()
+        guests = (data.get('guests') or '').strip()
+        comment = (data.get('comment') or '').strip()
+
+        if not name or not phone or not date or not time_:
+            return jsonify({'ok': False, 'error': 'Заполните обязательные поля'}), 400
+
+        token = os.getenv('TELEGRAM_BOT_TOKEN')
+        chat_id = os.getenv('TELEGRAM_CHAT_ID')
+
+        if not token or not chat_id:
+            app.logger.warning('Telegram credentials not configured')
+            return jsonify({'ok': False, 'error': 'Сервис временно недоступен'}), 503
+
+        lines = [
+            '\U0001f4c5 *Заявка на бронирование стола*',
+            f'\U0001f464 Имя: {name}',
+            f'\U0001f4de Телефон: {phone}',
+            f'\U0001f4c6 Дата: {date}',
+            f'\U0001f550 Время: {time_}',
+        ]
+        if guests:
+            lines.append(f'\U0001f465 Гостей: {guests}')
+        if comment:
+            lines.append(f'\U0001f4ac Комментарий: {comment}')
+
+        try:
+            resp = requests.post(
+                f'https://api.telegram.org/bot{token}/sendMessage',
+                json={'chat_id': chat_id, 'text': '\n'.join(lines), 'parse_mode': 'Markdown'},
+                timeout=5,
+            )
+            resp.raise_for_status()
+        except Exception as exc:
+            app.logger.error('Telegram sendMessage failed: %s', exc)
+            return jsonify({'ok': False, 'error': 'Не удалось отправить заявку. Позвоните нам: +7 (8212) 29-12-47'}), 502
+
+        return jsonify({'ok': True})
 
     @app.errorhandler(404)
     def not_found(_):

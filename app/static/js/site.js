@@ -93,4 +93,53 @@ document.addEventListener('DOMContentLoaded', () => {
   if (revealItems.length) {
     registerReveal(revealItems);
   }
+
+  const reserveForm = document.getElementById('reserve-form');
+  if (reserveForm) {
+    const submitBtn = reserveForm.querySelector('[data-submit]');
+    const msgEl = reserveForm.querySelector('[data-message]');
+
+    const setMessage = (text, isError) => {
+      if (!msgEl) return;
+      msgEl.textContent = text;
+      msgEl.className = 'reserve-message ' + (isError ? 'reserve-message--error' : 'reserve-message--success');
+      msgEl.hidden = false;
+    };
+
+    reserveForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const consent = reserveForm.querySelector('[name="consent"]');
+      if (consent && !consent.checked) {
+        setMessage('Необходимо согласие на обработку персональных данных.', true);
+        return;
+      }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправляем…';
+      }
+      if (msgEl) msgEl.hidden = true;
+
+      try {
+        const resp = await fetch('/reserve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(reserveForm))),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          setMessage('Заявка отправлена! Перезвоним для подтверждения.', false);
+          reserveForm.reset();
+        } else {
+          setMessage(data.error || 'Ошибка. Позвоните нам: +7 (8212) 29-12-47', true);
+        }
+      } catch {
+        setMessage('Ошибка сети. Позвоните нам: +7 (8212) 29-12-47', true);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Отправить заявку';
+        }
+      }
+    });
+  }
 });

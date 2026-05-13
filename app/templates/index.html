@@ -238,6 +238,64 @@
           </article>
         </div>
       </section>
+      <section class="section compact reserve-section" id="reserve">
+        <div class="container reserve-layout">
+          <div class="reserve-copy reveal">
+            <span class="eyebrow">Бронирование</span>
+            <h2 class="panel-title">Забронировать стол.</h2>
+            <p class="lead">Оставьте заявку — перезвоним для подтверждения в течение часа.</p>
+            <p class="lead">Или просто позвоните: <a href="tel:+78212291247" style="color:var(--accent)">+7 (8212) 29-12-47</a></p>
+          </div>
+
+          <form class="reserve-form reveal delay-1" id="reserve-form" novalidate>
+            <div class="field">
+              <label for="res-name">Имя *</label>
+              <input type="text" id="res-name" name="name" placeholder="Ваше имя" required autocomplete="given-name">
+            </div>
+            <div class="field">
+              <label for="res-phone">Телефон *</label>
+              <input type="tel" id="res-phone" name="phone" placeholder="+7 (___) ___-__-__" required autocomplete="tel">
+            </div>
+            <div class="field">
+              <label for="res-date">Дата *</label>
+              <input type="date" id="res-date" name="date" required>
+            </div>
+            <div class="field">
+              <label for="res-time">Время *</label>
+              <input type="time" id="res-time" name="time" min="12:00" max="22:00" required>
+            </div>
+            <div class="field">
+              <label for="res-guests">Количество гостей</label>
+              <select id="res-guests" name="guests">
+                <option value="">— не указано —</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8+</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="res-comment">Комментарий</label>
+              <input type="text" id="res-comment" name="comment" placeholder="Пожелания, повод...">
+            </div>
+            <div class="field field--full">
+              <label class="consent-label">
+                <input type="checkbox" name="consent" id="res-consent" required>
+                <span>Согласен(а) с <a href="{{ url_for('privacy_page') }}" target="_blank">политикой конфиденциальности</a> и даю согласие на обработку персональных данных</span>
+              </label>
+            </div>
+            <div class="reserve-submit-row field--full">
+              <button type="submit" class="button" data-submit>Отправить заявку</button>
+              <span class="reserve-message" data-message hidden></span>
+            </div>
+          </form>
+        </div>
+      </section>
+
     </main>
 
     <footer class="footer">

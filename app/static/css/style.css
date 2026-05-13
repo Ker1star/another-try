@@ -1221,3 +1221,86 @@ button {
   }
 }
 }
+
+/* ── Booking form ────────────────────────────────────── */
+.reserve-section {
+  background: var(--surface-solid);
+  border-top: 1px solid var(--line);
+}
+
+.reserve-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.7fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.reserve-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.reserve-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reserve-form .field label:not(.consent-label) {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted-strong);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.reserve-form .field--full {
+  grid-column: 1 / -1;
+}
+
+.reserve-form .field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2375675b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+.reserve-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.reserve-message {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.reserve-message--error {
+  color: var(--danger);
+}
+
+.reserve-message--success {
+  color: var(--success);
+}
+
+@media (max-width: 900px) {
+  .reserve-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .reserve-form {
+    grid-template-columns: 1fr;
+  }
+
+  .reserve-form .field--full,
+  .reserve-submit-row {
+    grid-column: 1;
+  }
+}
