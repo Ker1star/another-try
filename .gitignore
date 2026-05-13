@@ -8,3 +8,4 @@ public/
 
 .vercel
 .env*.local
+app/static/.imgcache/

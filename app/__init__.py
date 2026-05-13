@@ -148,6 +148,48 @@ def create_app():
     def privacy_page():
         return render_template('privacy.html')
 
+    @app.route('/imgx/<path:filename>')
+    def imgx(filename):
+        from flask import send_file, abort as _abort
+        import re
+
+        if not re.match(r'^images/[\w\-. ()/]+$', filename):
+            _abort(404)
+
+        static_root = os.path.realpath(app.static_folder)
+        src_path = os.path.realpath(os.path.join(static_root, filename))
+        if not src_path.startswith(static_root) or not os.path.isfile(src_path):
+            _abort(404)
+
+        w = request.args.get('w', default=1200, type=int)
+        w = max(100, min(w, 2400))
+
+        cache_dir = os.path.join(static_root, '.imgcache')
+        cache_name = filename.replace('/', '__').replace(' ', '_') + f'_{w}.webp'
+        cache_path = os.path.join(cache_dir, cache_name)
+
+        if not os.path.exists(cache_path):
+            try:
+                from PIL import Image
+                os.makedirs(cache_dir, exist_ok=True)
+                with Image.open(src_path) as img:
+                    if img.mode not in ('RGB', 'RGBA'):
+                        img = img.convert('RGB')
+                    elif img.mode == 'RGBA':
+                        img = img.convert('RGB')
+                    if img.width > w:
+                        img = img.resize(
+                            (w, round(img.height * w / img.width)),
+                            Image.LANCZOS,
+                        )
+                    img.save(cache_path, 'WEBP', quality=82, method=4)
+            except Exception as exc:
+                app.logger.error('imgx resize failed for %s: %s', filename, exc)
+                return send_file(src_path)
+
+        return send_file(cache_path, mimetype='image/webp',
+                         max_age=86400 * 30, conditional=True)
+
     @app.route('/reserve', methods=['POST'])
     def reserve():
         data = request.get_json(silent=True) or request.form
