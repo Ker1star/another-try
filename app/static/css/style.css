@@ -625,6 +625,18 @@ button {
   gap: 18px;
 }
 
+.menu-promo {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.menu-promo-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
 .map-card {
   overflow: hidden;
   border-radius: 26px;

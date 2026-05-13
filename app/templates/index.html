@@ -180,22 +180,23 @@
       </section>
 
       <section class="section compact">
-        <div class="container gallery-ribbon">
-          <article class="panel reveal">
-            <span class="eyebrow">Меню и доставка</span>
-            <h2 class="panel-title">Онлайн-заказ должен работать так же аккуратно, как сервис в зале.</h2>
-            <p class="lead">
-              Актуальные позиции, понятные категории, чистые карточки блюд и корзина без перегрузки. Всё важное видно сразу, без лишних переходов и декоративных препятствий.
-            </p>
-            <div class="hero-actions">
-              <a href="{{ url_for('menu_page') }}" class="button">Перейти к меню</a>
+        <div class="container">
+          <div class="menu-promo reveal">
+            <div class="about-food-grid">
+              <article class="frame about-food-frame">
+                <img src="{{ url_for('static', filename='images/dishes/4105.jpeg') }}" alt="Слабосолёный лосось" loading="lazy">
+              </article>
+              <article class="frame about-food-frame">
+                <img src="{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}" alt="Меню ресторана Марта" loading="lazy">
+              </article>
+              <article class="frame about-food-frame">
+                <img src="{{ url_for('static', filename='images/dishes/4107.jpeg') }}" alt="Греческий салат с фетой" loading="lazy">
+              </article>
+            </div>
+            <div class="menu-promo-actions">
+              <a href="{{ url_for('menu_page') }}" class="button">Посмотреть меню</a>
               <a href="{{ url_for('delivery_page') }}" class="button-secondary">Заказать доставку</a>
             </div>
-          </article>
-          <div class="gallery-stack reveal delay-1">
-            <article class="frame">
-              <img src="{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}" alt="Винная полка в ресторане Марта" loading="lazy">
-            </article>
           </div>
         </div>
       </section>
