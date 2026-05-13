@@ -124,15 +124,11 @@ button {
 .brand-mark {
   width: 46px;
   height: 46px;
-  display: grid;
-  place-items: center;
   border-radius: 14px;
-  background: linear-gradient(145deg, rgba(162, 69, 51, 0.12), rgba(181, 146, 86, 0.1));
-  border: 1px solid var(--line);
-  font-family: var(--font-serif);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--accent);
+  overflow: hidden;
+  flex-shrink: 0;
+  object-fit: cover;
+  display: block;
 }
 
 .brand-copy {

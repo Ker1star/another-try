@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Меню ресторана — Marta</title>
+  <title>Меню ресторана — Марта</title>
   <meta name="description" content="Актуальное ресторанное меню Марта в Сыктывкаре: блюда, фото, цены и отметки доступности в доставке.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Меню ресторана — Marta">
+  <meta property="og:title" content="Меню ресторана — Марта">
   <meta property="og:description" content="Актуальное ресторанное меню Марта в Сыктывкаре: блюда, фото, цены и отметки доступности в доставке.">
   <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
   <meta property="og:url" content="{{ request.url }}">
@@ -24,10 +24,10 @@
     <header class="site-header">
       <div class="container nav-row">
         <a href="{{ url_for('index') }}" class="brand" aria-label="Марта">
-          <span class="brand-mark">M</span>
+          <img src="{{ url_for('static', filename='images/marta/logo.jpg') }}" alt="Марта" class="brand-mark">
           <span class="brand-copy">
-            <strong>Marta</strong>
-            <span>restaurant • delivery</span>
+            <strong>Марта</strong>
+            <span>ресторан • доставка</span>
           </span>
         </a>
 
@@ -94,7 +94,7 @@
       <div class="container">
         <div class="footer-shell">
           <div>
-            <h2>Marta</h2>
+            <h2>Марта</h2>
             <p>Городской ресторан с камерной атмосферой и доставкой без лишней сложности.</p>
           </div>
           <div>
