@@ -106,16 +106,18 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
     # Full order validation (address, phone, name, etc.) — payment type forced to card
     build_order_payload({**payload, 'paymentType': 'card'}, base_url=base_url)
 
+    tracking_id = str(uuid.uuid4())
+
     payment = Payment.create(
         {
             'amount': {'value': f'{total:.2f}', 'currency': 'RUB'},
             'confirmation': {
                 'type': 'redirect',
-                'return_url': f'{base_url}/order?payment=success',
+                'return_url': f'{base_url}/order?payment=success&id={tracking_id}',
             },
             'capture': True,
             'description': 'Заказ в ресторане Marta',
-            'metadata': {'base_url': base_url},
+            'metadata': {'base_url': base_url, 'tracking_id': tracking_id},
             'receipt': _build_receipt(payload, menu_map),
         },
         str(uuid.uuid4()),
@@ -123,14 +125,17 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
 
     pending = PendingOrder(
         payment_id=payment.id,
+        tracking_id=tracking_id,
+        status='pending',
         payload_json=json.dumps(payload, ensure_ascii=False),
     )
     db.session.add(pending)
     db.session.commit()
 
-    logger.info("Payment created: id=%s total=%.2f", payment.id, total)
+    logger.info("Payment created: id=%s tracking=%s total=%.2f", payment.id, tracking_id, total)
     return {
         'paymentId': payment.id,
+        'trackingId': tracking_id,
         'confirmationUrl': payment.confirmation.confirmation_url,
     }
 
@@ -156,20 +161,33 @@ def handle_webhook(body: bytes, *, remote_ip: str) -> dict:
 
     pending = PendingOrder.query.filter_by(payment_id=payment_id).first()
     if not pending:
-        # Duplicate webhook — order already processed
         logger.warning("PendingOrder not found for payment_id=%s", payment_id)
+        return {'status': 'ok', 'note': 'unknown_payment'}
+
+    if pending.status == 'paid':
+        # Idempotency: duplicate webhook for already-processed payment
+        logger.info("Duplicate webhook for payment_id=%s (already paid)", payment_id)
         return {'status': 'ok', 'note': 'already_processed'}
 
     payload = json.loads(pending.payload_json)
     payload['paymentType'] = 'card'
     base_url = (obj.get('metadata') or {}).get('base_url', '')
 
-    # If create_order raises, the exception propagates and pending_order is NOT deleted,
-    # so YooKassa will retry the webhook and we can attempt again.
-    result = create_order(payload, base_url=base_url)
-    logger.info("SBIS order created for payment_id=%s", payment_id)
+    from datetime import datetime, timezone
 
-    db.session.delete(pending)
+    try:
+        result = create_order(payload, base_url=base_url)
+    except Exception as exc:
+        pending.status = 'failed'
+        pending.error = str(exc)[:1000]
+        pending.updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+        logger.error("SBIS order failed for payment_id=%s: %s", payment_id, exc)
+        raise
+
+    pending.status = 'paid'
+    pending.updated_at = datetime.now(timezone.utc)
     db.session.commit()
+    logger.info("SBIS order created for payment_id=%s", payment_id)
 
     return {'status': 'ok', 'order': result}

@@ -283,6 +283,22 @@ def payment_webhook_route():
     return jsonify(result)
 
 
+@api_bp.route('/payments/<tracking_id>/status', methods=['GET'])
+def payment_status_route(tracking_id):
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    from app.models import PendingOrder
+    pending = PendingOrder.query.filter_by(tracking_id=tracking_id).first()
+    if not pending:
+        return jsonify({'status': 'unknown'}), 404
+    response = {'status': pending.status}
+    if pending.status == 'failed' and pending.error:
+        response['error'] = pending.error
+    return jsonify(response)
+
+
 @api_bp.route('/health', methods=['GET'])
 def health_route():
     database_available = current_app.config.get('DATABASE_AVAILABLE')

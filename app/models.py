@@ -6,8 +6,12 @@ class PendingOrder(db.Model):
     __tablename__ = 'pending_orders'
     id = db.Column(db.Integer, primary_key=True)
     payment_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    tracking_id = db.Column(db.String(36), unique=True, nullable=True, index=True)
+    status = db.Column(db.String(20), default='pending', nullable=False, index=True)
+    error = db.Column(db.Text, nullable=True)
     payload_json = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
 
 class Reservation(db.Model):

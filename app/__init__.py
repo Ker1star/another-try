@@ -16,20 +16,32 @@ db = SQLAlchemy()
 def _ensure_runtime_schema(connection=None):
     bind = connection or db.engine
     inspector = inspect(bind)
-    if 'menu_items' not in inspector.get_table_names():
-        return
-
-    existing_columns = {column['name'] for column in inspector.get_columns('menu_items')}
+    tables = set(inspector.get_table_names())
     alter_statements = []
 
-    if 'presto_id' not in existing_columns:
-        alter_statements.append("ALTER TABLE menu_items ADD COLUMN presto_id INTEGER")
-    if 'external_id' not in existing_columns:
-        alter_statements.append("ALTER TABLE menu_items ADD COLUMN external_id VARCHAR(64)")
-    if 'nom_number' not in existing_columns:
-        alter_statements.append("ALTER TABLE menu_items ADD COLUMN nom_number VARCHAR(128)")
-    if 'available_for_delivery' not in existing_columns:
-        alter_statements.append("ALTER TABLE menu_items ADD COLUMN available_for_delivery BOOLEAN NOT NULL DEFAULT TRUE")
+    if 'menu_items' in tables:
+        cols = {c['name'] for c in inspector.get_columns('menu_items')}
+        if 'presto_id' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN presto_id INTEGER")
+        if 'external_id' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN external_id VARCHAR(64)")
+        if 'nom_number' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN nom_number VARCHAR(128)")
+        if 'available_for_delivery' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN available_for_delivery BOOLEAN NOT NULL DEFAULT TRUE")
+
+    if 'pending_orders' in tables:
+        cols = {c['name'] for c in inspector.get_columns('pending_orders')}
+        if 'tracking_id' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN tracking_id VARCHAR(36)")
+            alter_statements.append("CREATE UNIQUE INDEX IF NOT EXISTS ix_pending_orders_tracking_id ON pending_orders (tracking_id)")
+        if 'status' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'pending'")
+            alter_statements.append("CREATE INDEX IF NOT EXISTS ix_pending_orders_status ON pending_orders (status)")
+        if 'error' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN error TEXT")
+        if 'updated_at' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE")
 
     for statement in alter_statements:
         if connection is not None:
