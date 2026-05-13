@@ -1090,6 +1090,11 @@ button {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: rgba(255, 250, 245, 0.78);
+  border: 1px solid rgba(66, 47, 34, 0.1);
+  box-shadow: var(--shadow-md);
+  border-radius: 26px;
+  padding: 36px 40px;
 }
 
 .about-hero-copy .panel-title,
