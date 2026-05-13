@@ -1076,32 +1076,34 @@ button {
 
 .about-hero-section {
   padding-top: 56px;
-  padding-bottom: 40px;
+  padding-bottom: 48px;
 }
 
 .about-hero-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 64px;
-  align-items: stretch;
+  align-items: center;
 }
 
 .about-hero-copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 20px;
-  padding: 12px 0;
+  gap: 16px;
 }
 
-.about-hero-title {
+.about-hero-copy .panel-title,
+.about-hero-copy p,
+.about-hero-copy .hero-facts {
   margin: 0;
 }
 
 .about-hero-photos {
   display: grid;
   grid-template-columns: 3fr 2fr;
+  grid-template-rows: 1fr;
   gap: 8px;
+  aspect-ratio: 4 / 3;
 }
 
 .about-hero-photos .frame-hero {
@@ -1207,8 +1209,8 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .about-hero-photos .frame-hero {
-    aspect-ratio: 4 / 3;
+  .about-hero-photos {
+    aspect-ratio: 3 / 2;
   }
 
   .about-food-grid {
