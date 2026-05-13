@@ -1222,6 +1222,41 @@ button {
 }
 }
 
+/* ── Social icons ───────────────────────────────────── */
+.social-icons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--muted-strong);
+  transition: background 200ms ease, color 200ms ease;
+  flex-shrink: 0;
+}
+
+.social-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.social-icon:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.footer .social-icons {
+  margin-top: 12px;
+}
+
 /* ── Booking form ────────────────────────────────────── */
 .reserve-section {
   background: var(--surface-solid);
