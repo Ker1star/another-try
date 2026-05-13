@@ -9,3 +9,5 @@ public/
 .vercel
 .env*.local
 app/static/.imgcache/
+app/static/images/*.txt
+app/static/images/*.csv
