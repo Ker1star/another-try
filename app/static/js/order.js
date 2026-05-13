@@ -70,15 +70,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle return from YooKassa payment page
   const params = new URLSearchParams(window.location.search);
   const paymentStatus = params.get('payment');
-  if (paymentStatus === 'success') {
-    localStorage.removeItem('cart');
-    showMessage('Оплата прошла. Заказ принят и передаётся на кухню — ждите звонка при необходимости уточнений.', 'success');
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = 'Заказ оплачен';
+  if (paymentStatus === 'success' || paymentStatus === 'error') {
+    const heroSection = document.querySelector('.page-hero');
+    const formSection = document.getElementById('orderFormSection');
+    const resultSection = document.getElementById('paymentResult');
+    const iconEl = resultSection?.querySelector('[data-result-icon]');
+    const titleEl = resultSection?.querySelector('[data-result-title]');
+    const textEl = resultSection?.querySelector('[data-result-text]');
+
+    if (paymentStatus === 'success') {
+      localStorage.removeItem('cart');
     }
-  } else if (paymentStatus === 'error') {
-    showMessage('Оплата не прошла. Проверьте данные карты и попробуйте снова.', 'error');
+    if (paymentStatus === 'error' && resultSection) {
+      resultSection.classList.add('payment-result--error');
+      if (iconEl) iconEl.textContent = '!';
+      if (titleEl) titleEl.textContent = 'Оплата не прошла';
+      if (textEl) textEl.textContent = 'Платёж не был завершён. Деньги не списались. Попробуйте ещё раз или позвоните нам: +7 (8212) 29-12-47';
+    }
+
+    if (heroSection) heroSection.hidden = true;
+    if (formSection) formSection.hidden = true;
+    if (resultSection) resultSection.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    return;
   }
 
   renderSummary();

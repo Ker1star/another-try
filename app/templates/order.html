@@ -94,7 +94,22 @@
         </div>
       </section>
 
-      <section class="container">
+      <section class="container" id="paymentResult" hidden>
+        <div class="payment-result reveal">
+          <div class="payment-result-icon" data-result-icon>✓</div>
+          <h2 class="payment-result-title" data-result-title>Заказ принят</h2>
+          <p class="payment-result-text" data-result-text>
+            Заказ передан в систему ресторана. Чек придёт на указанную электронную почту.
+            Если потребуется уточнение — мы перезвоним по указанному номеру.
+          </p>
+          <div class="payment-result-actions">
+            <a href="{{ url_for('index') }}" class="button">На главную</a>
+            <a href="{{ url_for('menu_page') }}" class="button-secondary">Посмотреть меню</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="container" id="orderFormSection">
         <div class="order-layout">
           <article class="order-card reveal">
             <h2>Куда и кому привезти заказ</h2>
