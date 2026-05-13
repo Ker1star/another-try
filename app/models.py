@@ -10,6 +10,19 @@ class PendingOrder(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
+class Reservation(db.Model):
+    __tablename__ = 'reservations'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(40), nullable=False)
+    date = db.Column(db.String(20), nullable=False)
+    time = db.Column(db.String(10), nullable=False)
+    guests = db.Column(db.String(10), nullable=True)
+    comment = db.Column(db.Text, nullable=True)
+    telegram_sent = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)

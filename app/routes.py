@@ -26,7 +26,8 @@ def _serialize_image_path(image_path):
 def _authorize_internal_task():
     cron_secret = os.getenv('CRON_SECRET')
     if not cron_secret:
-        return True
+        current_app.logger.error('CRON_SECRET not configured — refusing internal task')
+        return False
 
     auth_header = request.headers.get('Authorization', '')
     return auth_header == f'Bearer {cron_secret}'
@@ -260,6 +261,8 @@ def payment_webhook_route():
         or request.remote_addr
     )
 
+    from app import send_telegram
+
     try:
         result = handle_webhook(request.get_data(), remote_ip=remote_ip)
     except PermissionError as exc:
@@ -270,9 +273,11 @@ def payment_webhook_route():
         return jsonify({'error': str(exc)}), 400
     except PrestoOrderError as exc:
         current_app.logger.error("SBIS order failed in webhook: %s | details=%s", exc, exc.details)
+        send_telegram(f'🚨 *Marta: оплата прошла, заказ НЕ создан в Saby*\nОшибка: `{exc}`\nДетали: `{exc.details}`\n\nПроверьте PendingOrder в БД и создайте вручную.')
         return jsonify({'error': str(exc)}), 500
-    except Exception:
+    except Exception as exc:
         current_app.logger.exception("Unexpected webhook error")
+        send_telegram(f'🚨 *Marta: непредвиденная ошибка webhook ЮКассы*\n`{type(exc).__name__}: {exc}`')
         return jsonify({'error': 'Internal error'}), 500
 
     return jsonify(result)

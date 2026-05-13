@@ -41,6 +41,27 @@ def _ensure_runtime_schema(connection=None):
         db.session.commit()
 
 
+def send_telegram(text):
+    """Send a message to the admin chat. Returns True on success."""
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    if not token or not chat_id:
+        return False
+    proxy_url = os.getenv('TELEGRAM_PROXY')
+    proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
+    try:
+        resp = requests.post(
+            f'https://api.telegram.org/bot{token}/sendMessage',
+            json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'},
+            timeout=10,
+            proxies=proxies,
+        )
+        resp.raise_for_status()
+        return True
+    except Exception:
+        return False
+
+
 def _resolve_database_url():
     database_url = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL')
     if database_url:
@@ -192,26 +213,39 @@ def create_app():
 
     @app.route('/reserve', methods=['POST'])
     def reserve():
+        from app.models import Reservation
+
         data = request.get_json(silent=True) or request.form
-        name = (data.get('name') or '').strip()
-        phone = (data.get('phone') or '').strip()
-        date = (data.get('date') or '').strip()
-        time_ = (data.get('time') or '').strip()
-        guests = (data.get('guests') or '').strip()
-        comment = (data.get('comment') or '').strip()
+        name = (data.get('name') or '').strip()[:120]
+        phone = (data.get('phone') or '').strip()[:40]
+        date = (data.get('date') or '').strip()[:20]
+        time_ = (data.get('time') or '').strip()[:10]
+        guests = (data.get('guests') or '').strip()[:10] or None
+        comment = (data.get('comment') or '').strip()[:1000] or None
 
         if not name or not phone or not date or not time_:
             return jsonify({'ok': False, 'error': 'Заполните обязательные поля'}), 400
 
-        token = os.getenv('TELEGRAM_BOT_TOKEN')
-        chat_id = os.getenv('TELEGRAM_CHAT_ID')
-
-        if not token or not chat_id:
-            app.logger.warning('Telegram credentials not configured')
+        if not app.config.get('DATABASE_AVAILABLE'):
+            app.logger.error('Reservation skipped — DB unavailable')
             return jsonify({'ok': False, 'error': 'Сервис временно недоступен'}), 503
+
+        try:
+            res = Reservation(
+                name=name, phone=phone, date=date, time=time_,
+                guests=guests, comment=comment,
+            )
+            db.session.add(res)
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            app.logger.error('Reservation DB save failed: %s', exc)
+            send_telegram(f'⚠️ Marta: ошибка сохранения брони в БД: {exc}')
+            return jsonify({'ok': False, 'error': 'Не удалось сохранить заявку. Позвоните нам: +7 (8212) 29-12-47'}), 500
 
         lines = [
             '\U0001f4c5 *Заявка на бронирование стола*',
+            f'\U0001f194 #{res.id}',
             f'\U0001f464 Имя: {name}',
             f'\U0001f4de Телефон: {phone}',
             f'\U0001f4c6 Дата: {date}',
@@ -222,20 +256,11 @@ def create_app():
         if comment:
             lines.append(f'\U0001f4ac Комментарий: {comment}')
 
-        proxy_url = os.getenv('TELEGRAM_PROXY')
-        proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
-
-        try:
-            resp = requests.post(
-                f'https://api.telegram.org/bot{token}/sendMessage',
-                json={'chat_id': chat_id, 'text': '\n'.join(lines), 'parse_mode': 'Markdown'},
-                timeout=10,
-                proxies=proxies,
-            )
-            resp.raise_for_status()
-        except Exception as exc:
-            app.logger.error('Telegram sendMessage failed: %s', exc)
-            return jsonify({'ok': False, 'error': 'Не удалось отправить заявку. Позвоните нам: +7 (8212) 29-12-47'}), 502
+        if send_telegram('\n'.join(lines)):
+            res.telegram_sent = True
+            db.session.commit()
+        else:
+            app.logger.warning('Reservation #%s saved, Telegram notification failed', res.id)
 
         return jsonify({'ok': True})
 
