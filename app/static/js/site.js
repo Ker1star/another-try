@@ -94,6 +94,41 @@ document.addEventListener('DOMContentLoaded', () => {
     registerReveal(revealItems);
   }
 
+  const dateInput = document.getElementById('res-date');
+  const timeInput = document.getElementById('res-time');
+
+  if (dateInput && timeInput) {
+    const toLocalDateStr = (d) => {
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    };
+
+    const roundUpTo15 = (d) => {
+      const ms = 15 * 60 * 1000;
+      return new Date(Math.ceil(d.getTime() / ms) * ms);
+    };
+
+    const updateTimeMin = () => {
+      const now = new Date();
+      const todayStr = toLocalDateStr(now);
+      if (dateInput.value === todayStr) {
+        const rounded = roundUpTo15(now);
+        const pad = n => String(n).padStart(2, '0');
+        const minTime = `${pad(rounded.getHours())}:${pad(rounded.getMinutes())}`;
+        timeInput.min = minTime > '22:30' ? '23:59' : minTime;
+        if (timeInput.value && timeInput.value < timeInput.min) {
+          timeInput.value = '';
+        }
+      } else {
+        timeInput.min = '12:00';
+      }
+    };
+
+    dateInput.min = toLocalDateStr(new Date());
+    dateInput.addEventListener('change', updateTimeMin);
+    updateTimeMin();
+  }
+
   const reserveForm = document.getElementById('reserve-form');
   if (reserveForm) {
     const submitBtn = reserveForm.querySelector('[data-submit]');

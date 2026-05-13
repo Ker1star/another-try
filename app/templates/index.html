@@ -226,6 +226,10 @@
                 <span>График</span>
                 <strong>Ежедневно с 12:00 до 23:00</strong>
               </div>
+              <div class="contact-item">
+                <span>ВКонтакте</span>
+                <a href="https://vk.com/fraumartasyk" target="_blank" rel="noopener"><strong>vk.com/fraumartasyk</strong></a>
+              </div>
             </div>
             <div class="hero-actions">
               <a href="{{ url_for('delivery_page') }}" class="button">Заказать доставку</a>
@@ -258,11 +262,11 @@
             </div>
             <div class="field">
               <label for="res-date">Дата *</label>
-              <input type="date" id="res-date" name="date" required>
+              <input type="date" id="res-date" name="date" required autocomplete="off">
             </div>
             <div class="field">
               <label for="res-time">Время *</label>
-              <input type="time" id="res-time" name="time" min="12:00" max="22:00" required>
+              <input type="time" id="res-time" name="time" min="12:00" max="22:30" step="900" required>
             </div>
             <div class="field">
               <label for="res-guests">Количество гостей</label>
