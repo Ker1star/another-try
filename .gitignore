@@ -5,3 +5,6 @@ __pycache__/
 instance/
 .vercel/
 public/
+
+.vercel
+.env*.local

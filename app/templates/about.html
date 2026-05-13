@@ -65,13 +65,13 @@
 
     <main>
 
-      <!-- Hero: logo + headline + hero photo -->
+      <!-- Hero: logo + headline + interior photos -->
       <section class="section about-hero-section">
         <div class="container about-hero-grid">
           <div class="about-hero-copy reveal">
             <img
               src="{{ url_for('static', filename='images/лого.PNG') }}"
-              alt="Marta — кафе и банкет холл"
+              alt="Логотип ресторана Marta"
               class="about-logo"
               loading="eager">
             <p class="lead">
@@ -95,25 +95,22 @@
           <div class="about-hero-photos reveal delay-1">
             <article class="frame frame-hero">
               <img
-                src="{{ url_for('static', filename='images/about/hall-banquet.jpg') }}"
-                alt="Банкетный зал ресторана Марта"
-                loading="eager"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}'">
+                src="{{ url_for('static', filename='images/marta/DSC_0796.jpg') }}"
+                alt="Интерьер ресторана Марта — кожаный диван, кирпичная стена, картины"
+                loading="eager">
             </article>
             <div class="frame-row">
               <article class="frame">
                 <img
-                  src="{{ url_for('static', filename='images/about/candle.jpg') }}"
-                  alt="Атмосфера ресторана Марта"
-                  loading="lazy"
-                  onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}'">
+                  src="{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}"
+                  alt="Барная полка ресторана Марта"
+                  loading="lazy">
               </article>
               <article class="frame">
                 <img
-                  src="{{ url_for('static', filename='images/about/cabinet.jpg') }}"
-                  alt="Интерьер ресторана Марта"
-                  loading="lazy"
-                  onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}'">
+                  src="{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}"
+                  alt="Меню ресторана Марта на столе"
+                  loading="lazy">
               </article>
             </div>
           </div>
@@ -136,10 +133,9 @@
 
           <article class="panel media-panel reveal delay-1">
             <img
-              src="{{ url_for('static', filename='images/about/hall-private.jpg') }}"
-              alt="Приватный зал ресторана Марта"
-              loading="lazy"
-              onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}'">
+              src="{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}"
+              alt="Приватный зал ресторана Марта с накрытым столом"
+              loading="lazy">
             <div class="panel-content">
               <span class="eyebrow">Пространство</span>
               <h2 class="panel-title">Два зала и лаундж — для любого формата встречи.</h2>
@@ -153,10 +149,9 @@
         <div class="container split-layout split-layout--reversed">
           <article class="panel media-panel reveal">
             <img
-              src="{{ url_for('static', filename='images/about/meats.jpg') }}"
-              alt="Собственные мясные блюда Марта"
-              loading="lazy"
-              onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/rostbif.JPG') }}'">
+              src="{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}"
+              alt="Винный шкаф ресторана Марта"
+              loading="lazy">
           </article>
 
           <article class="panel reveal delay-1">
@@ -189,74 +184,39 @@
           <div class="about-food-grid reveal">
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/cocotte.jpg') }}"
-                alt="Горячее блюдо в чугунке Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/oven-full.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4375.jpeg') }}"
+                alt="Оливки в хрустальной чаше"
+                loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/cheesecake.jpg') }}"
-                alt="Десерт ресторана Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4376.jpeg') }}"
+                alt="Квашеная капуста по-немецки"
+                loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/pate.jpg') }}"
-                alt="Паштет с тостами Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/carbon.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4563.jpeg') }}"
+                alt="Паштет с тостами"
+                loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/shrimp.jpg') }}"
-                alt="Блюдо из морепродуктов Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/krevet.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4100.jpeg') }}"
+                alt="Сырная тарелка с мёдом и орехами"
+                loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/cheese.jpg') }}"
-                alt="Сырная тарелка Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4194.jpeg') }}"
+                alt="Паста с креветками"
+                loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/about/bar.jpg') }}"
-                alt="Барная стойка Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0822.jpg') }}'">
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Interior gallery -->
-      <section class="section compact">
-        <div class="container">
-          <div class="about-interior-grid reveal">
-            <article class="frame about-interior-frame about-interior-frame--tall">
-              <img
-                src="{{ url_for('static', filename='images/about/lounge.jpg') }}"
-                alt="Лаунж-зона ресторана Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0856.jpg') }}'">
-            </article>
-            <article class="frame about-interior-frame">
-              <img
-                src="{{ url_for('static', filename='images/about/hall-banquet.jpg') }}"
-                alt="Банкетный зал ресторана Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}'">
-            </article>
-            <article class="frame about-interior-frame">
-              <img
-                src="{{ url_for('static', filename='images/about/hall-private.jpg') }}"
-                alt="Приватный зал ресторана Марта"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/interior1.jpg') }}'">
+                src="{{ url_for('static', filename='images/dishes/4135.jpeg') }}"
+                alt="Штрудель с миндалём"
+                loading="lazy">
             </article>
           </div>
         </div>
