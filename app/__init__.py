@@ -180,11 +180,15 @@ def create_app():
         if comment:
             lines.append(f'\U0001f4ac Комментарий: {comment}')
 
+        proxy_url = os.getenv('TELEGRAM_PROXY')
+        proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
+
         try:
             resp = requests.post(
                 f'https://api.telegram.org/bot{token}/sendMessage',
                 json={'chat_id': chat_id, 'text': '\n'.join(lines), 'parse_mode': 'Markdown'},
-                timeout=5,
+                timeout=10,
+                proxies=proxies,
             )
             resp.raise_for_status()
         except Exception as exc:
