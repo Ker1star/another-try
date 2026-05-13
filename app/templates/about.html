@@ -10,7 +10,11 @@
   <meta property="og:description" content="История ресторана Марта в Сыктывкаре: с 2009 года, собственный мясной цех, рецепты из Германии и Чехии.">
   <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
   <meta property="og:url" content="{{ request.url }}">
-  <link rel="icon" href="{{ url_for('static', filename='images/лого.PNG') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='images/favicon/favicon-96x96.png') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon/favicon.svg') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon/apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='images/favicon/site.webmanifest') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -102,8 +106,8 @@
             <div class="frame-row">
               <article class="frame">
                 <img
-                  src="{{ url_for('static', filename='images/marta/DSC_0872.jpg') }}"
-                  alt="Барная полка ресторана Марта"
+                  src="{{ url_for('static', filename='images/marta/DSC_0868.jpg') }}"
+                  alt="Барная стойка ресторана Марта"
                   loading="lazy">
               </article>
               <article class="frame">
@@ -133,8 +137,8 @@
 
           <article class="panel media-panel reveal delay-1">
             <img
-              src="{{ url_for('static', filename='images/marta/DSC_0993.jpg') }}"
-              alt="Приватный зал ресторана Марта с накрытым столом"
+              src="{{ url_for('static', filename='images/marta/IMG_4191.jpg') }}"
+              alt="Банкетный зал ресторана Марта с цветным витражом"
               loading="lazy">
             <div class="panel-content">
               <span class="eyebrow">Пространство</span>
@@ -184,38 +188,38 @@
           <div class="about-food-grid reveal">
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4102.jpeg') }}"
-                alt="Ростбиф и мясной ассортимент"
+                src="{{ url_for('static', filename='images/marta/DSC_0180.jpg') }}"
+                alt="Горячее блюдо в чугунной сковороде"
                 loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4105.jpeg') }}"
-                alt="Слабосолёный лосось с каперсами"
+                src="{{ url_for('static', filename='images/marta/DSC_0083.jpg') }}"
+                alt="Салат с креветками"
                 loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4107.jpeg') }}"
-                alt="Греческий салат с фетой"
+                src="{{ url_for('static', filename='images/marta/DSC_0548.jpg') }}"
+                alt="Стейк и бокал красного вина"
                 loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4375.jpeg') }}"
-                alt="Оливки в хрустальной чаше"
+                src="{{ url_for('static', filename='images/marta/DSC_0452.jpg') }}"
+                alt="Рыба с соусом песто"
                 loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4563.jpeg') }}"
-                alt="Паштет с тостами"
+                src="{{ url_for('static', filename='images/marta/DSC_0525.jpg') }}"
+                alt="Пицца с базиликом"
                 loading="lazy">
             </article>
             <article class="frame about-food-frame">
               <img
-                src="{{ url_for('static', filename='images/dishes/4135.jpeg') }}"
-                alt="Штрудель с миндалём"
+                src="{{ url_for('static', filename='images/marta/DSC_0262.jpg') }}"
+                alt="Салат Нисуаз с бокалом вина"
                 loading="lazy">
             </article>
           </div>
