@@ -950,7 +950,16 @@ button {
 
 @media (max-width: 920px) {
   .nav-row {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 10px;
+  }
+
+  .brand-copy span {
+    display: none;
+  }
+
+  .brand-copy strong {
+    font-size: 1.45rem;
   }
 
   .nav-links,
@@ -958,8 +967,21 @@ button {
     display: none;
   }
 
+  .nav-actions {
+    grid-column: 3;
+  }
+
   .menu-toggle {
+    grid-column: 4;
     display: inline-flex;
+  }
+
+  :root {
+    --header-height: 74px;
+  }
+
+  .site-header {
+    padding: 14px 0;
   }
 
   .hero-facts,
