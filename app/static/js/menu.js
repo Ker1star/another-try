@@ -122,12 +122,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       sectionHead.className = 'menu-section-head';
       sectionHead.appendChild(heading);
 
-      const description = document.createElement('p');
-      description.textContent = menuMode === 'delivery'
-        ? `Позиции категории «${category.name.toLowerCase()}», доступные для доставки и самовывоза.`
-        : `Позиции категории «${category.name.toLowerCase()}», доступные в основном меню ресторана.`;
-      sectionHead.appendChild(description);
-
       const grid = document.createElement('div');
       grid.className = 'menu-grid';
 
