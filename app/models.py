@@ -51,6 +51,8 @@ class MenuItem(db.Model):
     price = db.Column(db.Numeric(10,2), nullable=True)
     published = db.Column(db.Boolean, default=True)
     available_for_delivery = db.Column(db.Boolean, default=True, nullable=False)
+    in_restaurant = db.Column(db.Boolean, default=True, nullable=False)
+    in_family = db.Column(db.Boolean, default=False, nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     category = db.relationship('Category', backref='items')

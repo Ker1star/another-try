@@ -36,3 +36,7 @@ def get_price_list_id():
 
 def get_price_list_id_delivery():
     return _get_int_env(['PRESTO_PRICE_LIST_ID_DELIVERY', 'PRICE_LIST_ID_DELIVERY'], None)
+
+
+def get_price_list_id_family():
+    return _get_int_env(['PRESTO_PRICE_LIST_ID_FAMILY', 'PRICE_LIST_ID_FAMILY'], None)

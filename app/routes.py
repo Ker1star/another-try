@@ -9,7 +9,12 @@ from app.services.auth import auth as fetch_token
 from app.services.menu import upsert_menu
 from app.services.order import PrestoOrderError, create_order
 from app.services.payment import create_payment, handle_webhook
-from app.services.presto_config import get_point_id, get_price_list_id
+from app.services.presto_config import (
+    get_point_id,
+    get_price_list_id,
+    get_price_list_id_delivery,
+    get_price_list_id_family,
+)
 
 api_bp = Blueprint('api', __name__)
 presto_bp = Blueprint('presto', __name__)
@@ -49,7 +54,7 @@ def _require_database():
 
 def _resolve_menu_mode():
     mode = (request.args.get('mode') or 'restaurant').strip().lower()
-    if mode not in {'restaurant', 'delivery'}:
+    if mode not in {'restaurant', 'delivery', 'family'}:
         mode = 'restaurant'
     return mode
 
@@ -57,9 +62,12 @@ def _resolve_menu_mode():
 def _item_visible_for_mode(item, mode):
     if not item.published:
         return False
+    if mode == 'family':
+        return bool(item.in_family)
     if mode == 'delivery':
-        return bool(item.available_for_delivery)
-    return True
+        return bool(item.available_for_delivery) and not bool(item.in_family)
+    # restaurant
+    return bool(item.in_restaurant) and not bool(item.in_family)
 
 
 def _sort_by_name(entity):
@@ -184,8 +192,15 @@ def update_menu_route():
     json_data = request.get_json(silent=True) or {}
     point_id = json_data.get('point_id', get_point_id())
     price_list_id = json_data.get('price_list_id', get_price_list_id())
+    price_list_id_delivery = json_data.get('price_list_id_delivery', get_price_list_id_delivery())
+    price_list_id_family = json_data.get('price_list_id_family', get_price_list_id_family())
     try:
-        upsert_menu(point_id=point_id, price_list_id=price_list_id)
+        upsert_menu(
+            point_id=point_id,
+            price_list_id=price_list_id,
+            price_list_id_delivery=price_list_id_delivery,
+            price_list_id_family=price_list_id_family,
+        )
     except Exception as exc:
         return jsonify({'error': str(exc)}), 500
     return jsonify({'status': 'ok'})
@@ -202,14 +217,23 @@ def sync_menu_task():
 
     point_id = get_point_id()
     price_list_id = get_price_list_id()
+    price_list_id_delivery = get_price_list_id_delivery()
+    price_list_id_family = get_price_list_id_family()
     try:
-        upsert_menu(point_id=point_id, price_list_id=price_list_id)
+        upsert_menu(
+            point_id=point_id,
+            price_list_id=price_list_id,
+            price_list_id_delivery=price_list_id_delivery,
+            price_list_id_family=price_list_id_family,
+        )
     except Exception as exc:
         return jsonify({'error': str(exc)}), 500
     return jsonify({
         'status': 'ok',
         'pointId': point_id,
         'priceListId': price_list_id,
+        'priceListIdDelivery': price_list_id_delivery,
+        'priceListIdFamily': price_list_id_family,
     })
 
 

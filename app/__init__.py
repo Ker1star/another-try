@@ -29,6 +29,10 @@ def _ensure_runtime_schema(connection=None):
             alter_statements.append("ALTER TABLE menu_items ADD COLUMN nom_number VARCHAR(128)")
         if 'available_for_delivery' not in cols:
             alter_statements.append("ALTER TABLE menu_items ADD COLUMN available_for_delivery BOOLEAN NOT NULL DEFAULT TRUE")
+        if 'in_restaurant' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN in_restaurant BOOLEAN NOT NULL DEFAULT TRUE")
+        if 'in_family' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN in_family BOOLEAN NOT NULL DEFAULT FALSE")
 
     if 'pending_orders' in tables:
         cols = {c['name'] for c in inspector.get_columns('pending_orders')}
@@ -165,6 +169,14 @@ def create_app():
     def delivery_page_legacy():
         return render_template('delivery.html')
 
+    @app.route('/family')
+    def family_page():
+        return render_template('family.html')
+
+    @app.route('/family.html')
+    def family_page_legacy():
+        return render_template('family.html')
+
     @app.route('/order')
     def order_page():
         return render_template('order.html')
@@ -285,11 +297,21 @@ def create_app():
     @click.argument('price_list_id', required=False, default=None, type=int)
     def update_menu(point_id, price_list_id):
         from app.services.menu import upsert_menu
-        from app.services.presto_config import get_point_id, get_price_list_id
+        from app.services.presto_config import (
+            get_point_id,
+            get_price_list_id,
+            get_price_list_id_delivery,
+            get_price_list_id_family,
+        )
 
         point_id = point_id or get_point_id()
         price_list_id = price_list_id or get_price_list_id()
-        upsert_menu(point_id=point_id, price_list_id=price_list_id)
+        upsert_menu(
+            point_id=point_id,
+            price_list_id=price_list_id,
+            price_list_id_delivery=get_price_list_id_delivery(),
+            price_list_id_family=get_price_list_id_family(),
+        )
         click.echo("Menu updated successfully")
 
     return app

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Доставка — Марта</title>
-  <meta name="description" content="Меню доставки Marta в Сыктывкаре: актуальные позиции, корзина и оформление заказа онлайн.">
+  <title>Помощь домохозяйкам — Марта</title>
+  <meta name="description" content="Большие порции и блюда для большой семьи от ресторана Марта в Сыктывкаре: оформление и доставка онлайн.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Доставка — Марта">
-  <meta property="og:description" content="Меню доставки Marta в Сыктывкаре: актуальные позиции, корзина и оформление заказа онлайн.">
+  <meta property="og:title" content="Помощь домохозяйкам — Марта">
+  <meta property="og:description" content="Большие порции и блюда для большой семьи от ресторана Марта в Сыктывкаре: оформление и доставка онлайн.">
   <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
   <meta property="og:url" content="{{ request.url }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}">
@@ -38,8 +38,8 @@
         <nav class="nav-links" aria-label="Основная навигация">
           <a href="{{ url_for('index') }}">Главная</a>
           <a href="{{ url_for('menu_page') }}">Меню</a>
-          <a href="{{ url_for('delivery_page') }}" class="active">Доставка</a>
-          <a href="{{ url_for('family_page') }}">Помощь домохозяйкам</a>
+          <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('family_page') }}" class="active">Помощь домохозяйкам</a>
           <a href="{{ url_for('about_page') }}">О нас</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
@@ -79,10 +79,10 @@
           <div class="page-card reveal">
             <div class="page-card-grid">
               <div class="page-copy">
-                <span class="eyebrow">Меню доставки Marta</span>
-                <h1 class="section-title">Выберите блюда для доставки или самовывоза.</h1>
+                <span class="eyebrow">Помощь домохозяйкам</span>
+                <h1 class="section-title">Большие порции для большой семьи.</h1>
                 <p class="lead">
-                  Здесь только позиции, которые можно заказать домой. Добавьте блюда в корзину и переходите к оформлению.
+                  Готовые блюда крупными форматами — килограммовый ростбиф, два кило пюре, целые рыбы и салаты на компанию. Заберите домой или оформите доставку.
                 </p>
               </div>
             </div>
@@ -137,6 +137,7 @@
           <div>
             <h3>Навигация</h3>
             <p><a href="{{ url_for('menu_page') }}">Меню</a></p>
+            <p><a href="{{ url_for('delivery_page') }}">Доставка</a></p>
             <p><a href="{{ url_for('order_page') }}">Оформление заказа</a></p>
           </div>
           <div>
@@ -160,8 +161,8 @@
 
   <script>
     window.MARTA_MENU_CONFIG = {
-      apiUrl: "{{ url_for('api.menu_route') }}?mode=delivery",
-      mode: "delivery",
+      apiUrl: "{{ url_for('api.menu_route') }}?mode=family",
+      mode: "family",
       interactive: true,
       orderPageUrl: "{{ url_for('order_page') }}"
     };
