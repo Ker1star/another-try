@@ -106,6 +106,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       tabsList.appendChild(tabItem);
     });
 
+    if (categories.length <= 1) {
+      const menuNav = tabsList.closest('.menu-nav');
+      if (menuNav) menuNav.hidden = true;
+    }
+
     const observedSections = [];
 
     categories.forEach((category, index) => {
