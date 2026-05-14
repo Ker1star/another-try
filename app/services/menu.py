@@ -42,6 +42,31 @@ def _fetch_price_list_ids(point_id: int, price_list_id: int | None) -> set:
     return {entry['hierarchicalId'] for entry in items if not entry['isParent']}
 
 
+def _ensure_fallback_category(items: list, price_list_id: int | None, name: str) -> None:
+    """Attach orphan items (hierarchicalParent is None) to a virtual fallback category.
+
+    Some Saby price lists store items at the root with no parent category. Our MenuItem
+    requires a non-null category_id, so we synthesize a category with sbis_id = -price_list_id
+    and rewrite the items' parent reference to it. Mutates the items list in place and
+    appends the virtual category entry so the main loop picks it up.
+    """
+    if price_list_id is None or not items:
+        return
+    orphans = [entry for entry in items if not entry['isParent'] and entry.get('hierarchicalParent') is None]
+    if not orphans:
+        return
+
+    virtual_sbis_id = -abs(price_list_id)
+    items.append({
+        'isParent': True,
+        'hierarchicalId': virtual_sbis_id,
+        'hierarchicalParent': None,
+        'name': name,
+    })
+    for entry in orphans:
+        entry['hierarchicalParent'] = virtual_sbis_id
+
+
 def upsert_menu(
     point_id: int | None = None,
     price_list_id: int | None = None,
@@ -67,6 +92,7 @@ def upsert_menu(
     family_ids: set = set()
     if price_list_id_family is not None:
         family_items = fetch_sbis_menu(point_id=point_id, price_list_id=price_list_id_family)
+        _ensure_fallback_category(family_items, price_list_id_family, 'Помощь домохозяйкам')
         family_ids = {entry['hierarchicalId'] for entry in family_items if not entry['isParent']}
         logger.info("Family price list fetched: %d items.", len(family_ids))
 
@@ -74,6 +100,7 @@ def upsert_menu(
     delivery_items: list = []
     if price_list_id_delivery is not None and price_list_id_delivery != price_list_id:
         delivery_items = fetch_sbis_menu(point_id=point_id, price_list_id=price_list_id_delivery)
+        _ensure_fallback_category(delivery_items, price_list_id_delivery, 'Доставка — прочее')
 
     existing_cats = {category.sbis_id: category for category in Category.query.all()}
     existing_items = {item.sbis_id: item for item in MenuItem.query.all()}
