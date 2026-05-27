@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const messageBox = document.getElementById('orderMessage');
   const formTitle = document.getElementById('orderFormTitle');
   const pickupSelect = document.getElementById('pickupTime');
-  const pickupHint = document.getElementById('pickupHint');
   const serviceInputs = form ? Array.from(form.querySelectorAll('input[name="serviceType"]')) : [];
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
           pickupSelect.appendChild(opt);
         });
         pickupSelect.disabled = false;
-        if (pickupHint) pickupHint.textContent = '';
       }
       pickupSlotsLoaded = true;
     } catch (e) {
