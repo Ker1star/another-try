@@ -8,7 +8,92 @@ document.addEventListener('DOMContentLoaded', () => {
   const phoneInput = document.getElementById('phone');
   const consentCheck = document.getElementById('consentCheck');
   const messageBox = document.getElementById('orderMessage');
+  const formTitle = document.getElementById('orderFormTitle');
+  const pickupSelect = document.getElementById('pickupTime');
+  const pickupHint = document.getElementById('pickupHint');
+  const serviceInputs = form ? Array.from(form.querySelectorAll('input[name="serviceType"]')) : [];
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+  const getServiceType = () => {
+    const checked = serviceInputs.find((input) => input.checked);
+    return checked ? checked.value : 'delivery';
+  };
+
+  const setFieldRequired = (field, required) => {
+    field.querySelectorAll('input, select, textarea').forEach((control) => {
+      if (required) {
+        control.setAttribute('required', 'required');
+      } else {
+        control.removeAttribute('required');
+      }
+    });
+  };
+
+  const applyServiceVisibility = () => {
+    const service = getServiceType();
+    document.querySelectorAll('[data-service]').forEach((node) => {
+      const match = node.dataset.service === service;
+      node.hidden = !match;
+      if (node.classList.contains('field')) {
+        setFieldRequired(node, match && node.querySelector('[name="apartment"], [name="pickupTime"]') === null);
+        if (match && node.querySelector('[name="pickupTime"]')) {
+          setFieldRequired(node, true);
+        }
+      }
+    });
+    if (formTitle) {
+      formTitle.textContent = service === 'pickup' ? 'Самовывоз — выберите время' : 'Куда и кому привезти заказ';
+    }
+    if (submitButton) {
+      submitButton.textContent = service === 'pickup' ? 'Оплатить и забрать' : 'Перейти к оплате';
+    }
+  };
+
+  let pickupSlotsLoaded = false;
+  const loadPickupSlots = async () => {
+    if (!pickupSelect || pickupSlotsLoaded) return;
+    try {
+      const resp = await fetch('/api/pickup/slots', { headers: { Accept: 'application/json' } });
+      if (!resp.ok) throw new Error('slots');
+      const data = await resp.json();
+      pickupSelect.innerHTML = '';
+      if (!data.available || !data.slots.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = data.available
+          ? 'Сегодня уже не успеваем приготовить'
+          : `Закрыто. Откроемся в ${data.opensAt}`;
+        pickupSelect.appendChild(opt);
+        pickupSelect.disabled = true;
+      } else {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Выберите время';
+        pickupSelect.appendChild(placeholder);
+        data.slots.forEach((slot) => {
+          const opt = document.createElement('option');
+          opt.value = slot.value;
+          opt.textContent = slot.label;
+          pickupSelect.appendChild(opt);
+        });
+        pickupSelect.disabled = false;
+        if (pickupHint) {
+          pickupHint.textContent = `Готовим минимум ${data.leadMinutes} минут. Заберите до ${data.closesAt}.`;
+        }
+      }
+      pickupSlotsLoaded = true;
+    } catch (e) {
+      pickupSelect.innerHTML = '<option value="">Не удалось загрузить время</option>';
+    }
+  };
+
+  serviceInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      applyServiceVisibility();
+      if (input.value === 'pickup') loadPickupSlots();
+    });
+  });
+  applyServiceVisibility();
 
   const showMessage = (text, type = 'error') => {
     if (!messageBox) {
@@ -208,16 +293,19 @@ document.addEventListener('DOMContentLoaded', () => {
     submitButton.disabled = true;
     submitButton.textContent = 'Создаём платёж...';
 
+    const service = getServiceType();
+    if (service === 'pickup' && !pickupSelect?.value) {
+      showMessage('Выберите время самовывоза.', 'error');
+      submitButton.disabled = false;
+      submitButton.textContent = 'Оплатить и забрать';
+      return;
+    }
+
     const payload = {
+      serviceType: service,
       customerName: form.customerName.value.trim(),
       phone: form.phone.value.trim(),
       email: form.email.value.trim(),
-      address: {
-        city: form.city.value.trim(),
-        street: form.street.value.trim(),
-        house: form.house.value.trim(),
-        apartment: form.apartment.value.trim(),
-      },
       comment: form.comment.value.trim(),
       items: cart.map(item => ({
         id: item.id,
@@ -230,6 +318,17 @@ document.addEventListener('DOMContentLoaded', () => {
         qty: item.qty || 1,
       })),
     };
+
+    if (service === 'delivery') {
+      payload.address = {
+        city: form.city.value.trim(),
+        street: form.street.value.trim(),
+        house: form.house.value.trim(),
+        apartment: form.apartment.value.trim(),
+      };
+    } else {
+      payload.pickupTime = pickupSelect.value;
+    }
 
     try {
       const response = await fetch('/api/payments', {

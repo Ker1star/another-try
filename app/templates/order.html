@@ -68,6 +68,8 @@
     </aside>
 
     <main class="order-main">
+      <div id="deliveryHoursBanner" class="delivery-hours-banner" hidden></div>
+
       <section class="page-hero page-hero--compact">
         <div class="container">
           <span class="eyebrow">Оформление доставки</span>
@@ -93,8 +95,31 @@
       <section class="container" id="orderFormSection">
         <div class="order-layout">
           <article class="order-card reveal">
-            <h2>Куда и кому привезти заказ</h2>
+            <h2 id="orderFormTitle">Куда и кому привезти заказ</h2>
             <form id="orderForm" novalidate>
+              <div class="service-toggle" role="radiogroup" aria-label="Способ получения">
+                <label class="service-toggle-option">
+                  <input type="radio" name="serviceType" value="delivery" checked>
+                  <span>
+                    <strong>Доставка</strong>
+                    <small>Привезём по адресу</small>
+                  </span>
+                </label>
+                <label class="service-toggle-option">
+                  <input type="radio" name="serviceType" value="pickup">
+                  <span>
+                    <strong>Самовывоз</strong>
+                    <small>Бесплатно из ресторана</small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="pickup-info" data-service="pickup" hidden>
+                <strong>Заберёте по адресу:</strong>
+                <span>г. Сыктывкар, Сысольское шоссе, 1</span>
+                <small>Телефон ресторана: <a href="tel:+78212291247">+7 (8212) 29-12-47</a></small>
+              </div>
+
               <div class="order-form-grid">
                 <div class="field">
                   <label for="customerName">Имя</label>
@@ -108,25 +133,34 @@
                   <label for="email">Электронная почта <span class="field-required">— сюда придёт чек</span></label>
                   <input type="email" id="email" name="email" placeholder="name@example.com" required>
                 </div>
-                <div class="field">
+
+                <div class="field" data-service="pickup" hidden>
+                  <label for="pickupTime">Когда заберёте</label>
+                  <select id="pickupTime" name="pickupTime">
+                    <option value="">Загружаем доступное время…</option>
+                  </select>
+                  <small class="field-hint" id="pickupHint"></small>
+                </div>
+
+                <div class="field" data-service="delivery">
                   <label for="city">Город</label>
                   <input type="text" id="city" name="city" value="Сыктывкар" required>
                 </div>
-                <div class="field">
+                <div class="field" data-service="delivery">
                   <label for="street">Улица</label>
                   <input type="text" id="street" name="street" placeholder="Например, Сысольское шоссе" required>
                 </div>
-                <div class="field">
+                <div class="field" data-service="delivery">
                   <label for="house">Дом</label>
                   <input type="text" id="house" name="house" placeholder="1" required>
                 </div>
-                <div class="field">
+                <div class="field" data-service="delivery">
                   <label for="apartment">Квартира / офис / подъезд</label>
                   <input type="text" id="apartment" name="apartment" placeholder="Если нужно">
                 </div>
                 <div class="field full">
                   <label for="comment">Комментарий к заказу</label>
-                  <textarea id="comment" name="comment" placeholder="Код домофона, этаж, ориентир или другие детали для курьера"></textarea>
+                  <textarea id="comment" name="comment" placeholder="Код домофона, этаж, ориентир или другие детали"></textarea>
                 </div>
               </div>
 

@@ -6,6 +6,13 @@ import requests
 from app import db
 from app.models import Category, MenuItem
 from app.services.auth import auth as fetch_token
+from app.services.delivery_hours import (
+    get_delivery_status,
+    get_pickup_slots,
+    is_delivery_open,
+    is_pickup_time_valid,
+    parse_pickup_time,
+)
 from app.services.menu import upsert_menu
 from app.services.order import PrestoOrderError, create_order
 from app.services.payment import create_payment, handle_webhook
@@ -237,6 +244,48 @@ def sync_menu_task():
     })
 
 
+@api_bp.route('/delivery/status', methods=['GET'])
+def delivery_status_route():
+    return jsonify(get_delivery_status())
+
+
+@api_bp.route('/pickup/slots', methods=['GET'])
+def pickup_slots_route():
+    status = get_delivery_status()
+    return jsonify({
+        'available': status['available'],
+        'opensAt': status['opensAt'],
+        'closesAt': status['closesAt'],
+        'leadMinutes': status['pickupLeadMinutes'],
+        'slots': get_pickup_slots() if status['available'] else [],
+    })
+
+
+def _validate_service(payload):
+    """Returns (service_type, error_response_or_none)."""
+    service_type = (payload.get('serviceType') or 'delivery').strip().lower()
+    if service_type not in {'delivery', 'pickup'}:
+        return service_type, (jsonify({'error': 'Неизвестный тип заказа.'}), 400)
+
+    if not is_delivery_open():
+        status = get_delivery_status()
+        return service_type, (jsonify({
+            'error': f'Заказы принимаются с {status["opensAt"]} до {status["closesAt"]}. Загляните в рабочие часы.',
+            'deliveryStatus': status,
+        }), 400)
+
+    if service_type == 'pickup':
+        pickup_dt = parse_pickup_time(payload.get('pickupTime'))
+        if not is_pickup_time_valid(pickup_dt):
+            status = get_delivery_status()
+            return service_type, (jsonify({
+                'error': f'Выберите время самовывоза не раньше чем через {status["pickupLeadMinutes"]} минут и до {status["closesAt"]}.',
+                'deliveryStatus': status,
+            }), 400)
+
+    return service_type, None
+
+
 @api_bp.route('/orders', methods=['POST'])
 def create_order_route():
     unavailable_response = _require_database()
@@ -244,6 +293,9 @@ def create_order_route():
         return unavailable_response
 
     payload = request.get_json(silent=True) or {}
+    _, err = _validate_service(payload)
+    if err:
+        return err
     try:
         result = create_order(payload, base_url=request.host_url.rstrip('/'))
     except ValueError as exc:
@@ -262,6 +314,9 @@ def create_payment_route():
         return unavailable_response
 
     payload = request.get_json(silent=True) or {}
+    _, err = _validate_service(payload)
+    if err:
+        return err
     try:
         result = create_payment(payload, base_url=request.host_url.rstrip('/'))
     except ValueError as exc:

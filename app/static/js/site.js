@@ -186,4 +186,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  const deliveryBanner = document.getElementById('deliveryHoursBanner');
+  if (deliveryBanner) {
+    fetch('/api/delivery/status', { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((status) => {
+        if (!status) return;
+        const { available, opensAt, closesAt } = status;
+        deliveryBanner.classList.toggle('is-closed', !available);
+        deliveryBanner.textContent = available
+          ? `Доставка работает с ${opensAt} до ${closesAt}`
+          : `Сейчас доставка не работает. Принимаем заказы с ${opensAt} до ${closesAt}.`;
+        deliveryBanner.hidden = false;
+
+        if (!available) {
+          document.querySelectorAll('[data-delivery-gate], #checkoutBtn, #submitOrder, #stickyCart').forEach((el) => {
+            el.setAttribute('disabled', 'disabled');
+            el.classList.add('is-delivery-closed');
+            if (el.tagName === 'A') el.setAttribute('aria-disabled', 'true');
+          });
+        }
+      })
+      .catch(() => {});
+  }
 });

@@ -258,36 +258,48 @@ def build_order_payload(payload, *, base_url=None):
     if payment_type not in {'cash', 'card', 'online'}:
         raise ValueError('Неподдерживаемый способ оплаты.')
 
-    address_full = _build_address_full(payload)
-    address_json = payload.get('addressJson')
-    if isinstance(address_json, str):
-        address_json = address_json.strip() or None
-        if address_json:
-            try:
-                address_json = json.loads(address_json)
-            except json.JSONDecodeError:
-                raise ValueError('Некорректный addressJson для доставки.')
+    service_type = (payload.get('serviceType') or 'delivery').strip().lower()
+    is_pickup = service_type == 'pickup'
 
-    delivery_context = {}
-    try:
-        delivery_context = _fetch_delivery_context(point_id, address_full, address_json)
-    except requests.RequestException:
+    if is_pickup:
+        delivery = {
+            'isPickup': True,
+            'paymentType': payment_type,
+        }
+        order_datetime = _format_order_datetime(payload.get('pickupTime') or payload.get('datetime'))
+    else:
+        address_full = _build_address_full(payload)
+        address_json = payload.get('addressJson')
+        if isinstance(address_json, str):
+            address_json = address_json.strip() or None
+            if address_json:
+                try:
+                    address_json = json.loads(address_json)
+                except json.JSONDecodeError:
+                    raise ValueError('Некорректный addressJson для доставки.')
+
         delivery_context = {}
+        try:
+            delivery_context = _fetch_delivery_context(point_id, address_full, address_json)
+        except requests.RequestException:
+            delivery_context = {}
 
-    delivery = {
-        'isPickup': False,
-        'addressFull': address_full,
-        'paymentType': payment_type,
-        'persons': payload.get('persons'),
-        'district': payload.get('district') or delivery_context.get('district'),
-    }
+        delivery = {
+            'isPickup': False,
+            'addressFull': address_full,
+            'paymentType': payment_type,
+            'persons': payload.get('persons'),
+            'district': payload.get('district') or delivery_context.get('district'),
+        }
+
+        if address_json:
+            delivery['addressJSON'] = json.dumps(address_json, ensure_ascii=False)
+
+        order_datetime = _format_order_datetime(payload.get('datetime'))
 
     change_amount = payload.get('changeAmount')
     if payment_type == 'cash' and change_amount:
         delivery['changeAmount'] = float(change_amount)
-
-    if address_json:
-        delivery['addressJSON'] = json.dumps(address_json, ensure_ascii=False)
 
     if payment_type == 'online' and base_url:
         delivery['shopURL'] = base_url
@@ -306,7 +318,7 @@ def build_order_payload(payload, *, base_url=None):
             'lastname': (payload.get('lastName') or '').strip(),
             'patronymic': (payload.get('patronymic') or '').strip(),
         },
-        'datetime': _format_order_datetime(payload.get('datetime')),
+        'datetime': order_datetime,
         'nomenclatures': _build_nomenclatures(raw_items, menu_map, price_list_id),
         'delivery': delivery,
     }

@@ -1673,3 +1673,107 @@ button {
     grid-column: 1;
   }
 }
+
+.delivery-hours-banner {
+  margin: 0 auto;
+  padding: 12px 20px;
+  max-width: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  background: #ecf6e9;
+  color: #2f6a1e;
+  border-bottom: 1px solid rgba(47, 106, 30, 0.18);
+}
+
+.delivery-hours-banner.is-closed {
+  background: #fdecec;
+  color: #a8201a;
+  border-bottom-color: rgba(168, 32, 26, 0.25);
+}
+
+.is-delivery-closed {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.service-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.service-toggle-option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.service-toggle-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.service-toggle-option > span {
+  display: block;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.service-toggle-option > span strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.service-toggle-option > span small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.service-toggle-option input:checked + span {
+  border-color: var(--accent, #2f6a1e);
+  background: #f5fbf2;
+}
+
+.pickup-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  background: #f5fbf2;
+  border: 1px solid rgba(47, 106, 30, 0.18);
+  font-size: 14px;
+}
+
+.pickup-info strong {
+  font-weight: 600;
+}
+
+.pickup-info small {
+  opacity: 0.75;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 600px) {
+  .service-toggle {
+    grid-template-columns: 1fr;
+  }
+}
