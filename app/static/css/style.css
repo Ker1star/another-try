@@ -1698,6 +1698,10 @@ button {
   cursor: not-allowed;
 }
 
+[data-service][hidden] {
+  display: none !important;
+}
+
 .service-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;

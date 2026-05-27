@@ -77,9 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
           pickupSelect.appendChild(opt);
         });
         pickupSelect.disabled = false;
-        if (pickupHint) {
-          pickupHint.textContent = `Готовим минимум ${data.leadMinutes} минут. Заберите до ${data.closesAt}.`;
-        }
+        if (pickupHint) pickupHint.textContent = '';
       }
       pickupSlotsLoaded = true;
     } catch (e) {
