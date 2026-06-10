@@ -1,7 +1,9 @@
 """Tests for delivery zone lookup and quoting.
 
-Runs against the real Syktyvkar zone in app/config/delivery_zones.geojson
-(name "Сыктывкар": deliveryCost 200, minOrder 800, freeFrom 1500).
+Runs against the real two-zone config in app/config/delivery_zones.geojson:
+  - "Центр":   deliveryCost 200, minOrder 800, freeFrom 2000
+  - "Окраина": deliveryCost 300, minOrder 1000, no freeFrom (always paid)
+Центр is nested inside Окраина and listed first, so it wins on overlap.
 
 Run via pytest, or standalone: `python tests/test_delivery_zones.py`
 """
@@ -18,15 +20,34 @@ import app.services.order as order_mod  # noqa: E402
 # regardless of whether YANDEX_GEOCODER_KEY is configured locally.
 order_mod._geocode_address = lambda address_full: None
 
-INSIDE = (61.66, 50.84)      # central Syktyvkar, inside the zone
-OUTSIDE_NW = (61.72, 50.70)  # northwest, outside the polygon
+INSIDE = (61.66, 50.84)       # central Syktyvkar -> зона "Центр"
+OUTSKIRTS = (61.61, 50.80)    # south -> зона "Окраина" (вне "Центра")
+OUTSIDE_NW = (61.72, 50.70)   # northwest, outside all zones
 OUTSIDE_FAR = (60.00, 50.00)  # far away
 
 
 def test_point_inside_zone():
     zone = find_zone(*INSIDE)
     assert zone is not None
-    assert zone['name'] == 'Сыктывкар'
+    assert zone['name'] == 'Центр'
+
+
+def test_center_takes_priority_over_outskirts():
+    # INSIDE lies inside both polygons; the cheaper inner zone must win.
+    assert find_zone(*INSIDE)['name'] == 'Центр'
+
+
+def test_outskirts_zone_pricing():
+    result = quote(*OUTSKIRTS, subtotal=1500)
+    assert result['inZone'] is True
+    assert result['zoneName'] == 'Окраина'
+    assert result['deliveryCost'] == 300
+    assert result['freeFrom'] is None  # всегда платно
+
+
+def test_outskirts_never_free():
+    # No freeFrom -> delivery stays paid even on a large order.
+    assert quote(*OUTSKIRTS, subtotal=10000)['deliveryCost'] == 300
 
 
 def test_point_outside_zone():
@@ -35,14 +56,14 @@ def test_point_outside_zone():
 
 
 def test_quote_charges_delivery_below_free_threshold():
-    result = quote(*INSIDE, subtotal=1000)  # below freeFrom 1500
+    result = quote(*INSIDE, subtotal=1000)  # below freeFrom 2000
     assert result['inZone'] is True
     assert result['deliveryCost'] == 200
     assert result['belowMin'] is False  # 1000 >= minOrder 800
 
 
 def test_quote_is_free_above_threshold():
-    result = quote(*INSIDE, subtotal=1500)  # at freeFrom 1500
+    result = quote(*INSIDE, subtotal=2000)  # at freeFrom 2000
     assert result['inZone'] is True
     assert result['deliveryCost'] == 0.0
 
