@@ -412,6 +412,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const suggestBox = document.getElementById('streetSuggest');
   let suggestTimer = null;
 
+  // "Первомайская улица, 115" -> { street: "Первомайская улица", house: "115" }
+  // "Первомайская улица"      -> { street: "Первомайская улица", house: null }
+  const splitStreetHouse = (title) => {
+    const m = title.match(/^(.+),\s*(\d[\d/\-\sА-Яа-яA-Za-z]*)\s*$/);
+    if (m) return { street: m[1].trim(), house: m[2].trim() };
+    return { street: title.trim(), house: null };
+  };
+
   const hideSuggest = () => {
     if (!suggestBox) return;
     suggestBox.hidden = true;
@@ -432,9 +440,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       li.addEventListener('mousedown', (e) => {
         e.preventDefault();   // fire before the input's blur hides the list
-        if (form.street) form.street.value = it.title;
+        const parsed = splitStreetHouse(it.title);
+        if (form.street) form.street.value = parsed.street;
+        if (parsed.house && form.house) form.house.value = parsed.house;
         hideSuggest();
-        if (form.house) form.house.focus();
+        if (form.house && !parsed.house) form.house.focus();
         requestQuote();
       });
       suggestBox.appendChild(li);
