@@ -88,13 +88,11 @@ def test_resolve_rejects_below_min():
         assert 'Минимальная' in str(exc)
 
 
-def test_resolve_raises_without_coords_or_geocoder():
-    payload = {'address': _ADDR}  # no lat/lon, geocoder patched to None
-    try:
-        order_mod.resolve_delivery_pricing(payload, subtotal=1000)
-        assert False, 'expected ValueError when coordinates cannot be resolved'
-    except ValueError as exc:
-        assert 'координаты' in str(exc)
+def test_resolve_degrades_to_none_without_coords_or_geocoder():
+    # No lat/lon and geocoder patched to None: must degrade gracefully (return None),
+    # not raise — so a missing key never blocks checkout.
+    payload = {'address': _ADDR}
+    assert order_mod.resolve_delivery_pricing(payload, subtotal=1000) is None
 
 
 if __name__ == '__main__':

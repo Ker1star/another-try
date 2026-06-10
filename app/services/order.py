@@ -194,8 +194,14 @@ def resolve_delivery_pricing(payload, subtotal, address_full=None):
 
     Coordinates come from server-side geocoding of the textual address (trusted),
     falling back to client-supplied lat/lon only when the geocoder is unavailable.
-    Raises ValueError if the address is outside all zones or below the zone minimum.
-    Returns the zone quote dict augmented with resolved lat/lon.
+
+    Returns the zone quote dict augmented with resolved lat/lon, or None when the
+    coordinates cannot be determined at all (no geocoder key and no client coords) —
+    in that case the caller degrades to the pre-zone behaviour instead of blocking
+    the order, so a missing key never breaks checkout.
+
+    Raises ValueError only when coordinates ARE known and the address is outside all
+    zones or below the zone minimum.
     """
     if address_full is None:
         address_full = _build_address_full(payload)
@@ -205,7 +211,11 @@ def resolve_delivery_pricing(payload, subtotal, address_full=None):
         try:
             coords = (float(payload['lat']), float(payload['lon']))
         except (KeyError, TypeError, ValueError):
-            raise ValueError('Не удалось определить координаты адреса. Уточните адрес на карте.')
+            logger.warning(
+                "Delivery zone undetermined (no geocoder key and no client coords); "
+                "skipping zone pricing for this order."
+            )
+            return None
 
     lat, lon = coords
     quote = zone_quote(lat, lon, subtotal)
@@ -359,10 +369,11 @@ def build_order_payload(payload, *, base_url=None):
             'paymentType': payment_type,
             'persons': payload.get('persons'),
             'district': payload.get('district') or delivery_context.get('district'),
+        }
+        if pricing is not None:
             # TENTATIVE Saby field name — verify on the first real server order whether
             # Saby honours it on the receipt/courier sheet; YooKassa charge is authoritative.
-            'deliveryCost': pricing['deliveryCost'],
-        }
+            delivery['deliveryCost'] = pricing['deliveryCost']
 
         if address_json:
             delivery['addressJSON'] = json.dumps(address_json, ensure_ascii=False)
