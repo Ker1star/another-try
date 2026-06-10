@@ -58,8 +58,12 @@ def _normalize_phone_e164(phone: str) -> str:
     return f'+{digits}'
 
 
-def _build_receipt(payload: dict, menu_map: dict) -> dict:
-    """Build YooKassa receipt object for 54-FZ fiscalization."""
+def _build_receipt(payload: dict, menu_map: dict, delivery_cost: float = 0.0) -> dict:
+    """Build YooKassa receipt object for 54-FZ fiscalization.
+
+    The receipt items must sum to the charged amount, so the delivery line is
+    included here whenever a delivery fee is charged.
+    """
     raw_items = payload.get('items') or []
     phone = _normalize_phone_e164((payload.get('phone') or '').strip())
     email = (payload.get('email') or '').strip()
@@ -84,6 +88,16 @@ def _build_receipt(payload: dict, menu_map: dict) -> dict:
             'payment_subject': 'commodity',
         })
 
+    if delivery_cost and delivery_cost > 0:
+        items.append({
+            'description': 'Доставка',
+            'quantity': '1.000',
+            'amount': {'value': f'{delivery_cost:.2f}', 'currency': 'RUB'},
+            'vat_code': YOOKASSA_VAT_CODE,
+            'payment_mode': 'full_payment',
+            'payment_subject': 'service',
+        })
+
     return {'customer': customer, 'items': items}
 
 
@@ -103,14 +117,17 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
     if total <= 0:
         raise ValueError('Сумма заказа должна быть больше нуля.')
 
-    # Full order validation (address, phone, name, etc.) — payment type forced to card
-    build_order_payload({**payload, 'paymentType': 'card'}, base_url=base_url)
+    # Full order validation (address, phone, zone, min-order) — payment type forced to card.
+    # The returned payload carries the server-computed delivery cost we must charge.
+    order_payload = build_order_payload({**payload, 'paymentType': 'card'}, base_url=base_url)
+    delivery_cost = float((order_payload.get('delivery') or {}).get('deliveryCost') or 0)
+    charge_total = total + delivery_cost
 
     tracking_id = str(uuid.uuid4())
 
     payment = Payment.create(
         {
-            'amount': {'value': f'{total:.2f}', 'currency': 'RUB'},
+            'amount': {'value': f'{charge_total:.2f}', 'currency': 'RUB'},
             'confirmation': {
                 'type': 'redirect',
                 'return_url': f'{base_url}/order?payment=success&id={tracking_id}',
@@ -118,7 +135,7 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
             'capture': True,
             'description': 'Заказ в ресторане Marta',
             'metadata': {'base_url': base_url, 'tracking_id': tracking_id},
-            'receipt': _build_receipt(payload, menu_map),
+            'receipt': _build_receipt(payload, menu_map, delivery_cost=delivery_cost),
         },
         str(uuid.uuid4()),
     )
@@ -132,7 +149,10 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
     db.session.add(pending)
     db.session.commit()
 
-    logger.info("Payment created: id=%s tracking=%s total=%.2f", payment.id, tracking_id, total)
+    logger.info(
+        "Payment created: id=%s tracking=%s items=%.2f delivery=%.2f total=%.2f",
+        payment.id, tracking_id, total, delivery_cost, charge_total,
+    )
     return {
         'paymentId': payment.id,
         'trackingId': tracking_id,

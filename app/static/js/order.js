@@ -13,9 +13,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const serviceInputs = form ? Array.from(form.querySelectorAll('input[name="serviceType"]')) : [];
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
+  const latInput = document.getElementById('deliveryLat');
+  const lonInput = document.getElementById('deliveryLon');
+  const itemsTotalEl = document.getElementById('itemsTotal');
+  const deliveryCostRow = document.getElementById('deliveryCostRow');
+  const deliveryCostValue = document.getElementById('deliveryCostValue');
+  const deliveryEtaEl = document.getElementById('deliveryEta');
+  const zoneNote = document.getElementById('deliveryZoneNote');
+
+  let itemsTotal = 0;
+  let deliveryQuote = null;   // last /api/delivery/quote result, or null
+  let mapAvailable = false;   // false until the Yandex map initializes (graceful fallback)
+
   const getServiceType = () => {
     const checked = serviceInputs.find((input) => input.checked);
     return checked ? checked.value : 'delivery';
+  };
+
+  const updateTotals = () => {
+    let grand = itemsTotal;
+    if (getServiceType() === 'delivery' && deliveryQuote && deliveryQuote.inZone) {
+      grand += Number(deliveryQuote.deliveryCost) || 0;
+    }
+    if (totalEl) totalEl.textContent = `${grand.toFixed(0)} ₽`;
+  };
+
+  const updateSubmitState = () => {
+    if (!submitButton) return;
+    const hasCart = cart.length > 0;
+    const consentOk = consentCheck ? consentCheck.checked : true;
+    let ready = hasCart && consentOk;
+    // Gate delivery on a valid in-zone quote — but only when the map actually loaded,
+    // so an outage of Yandex never blocks orders (server re-validates anyway).
+    if (getServiceType() === 'delivery' && mapAvailable) {
+      ready = ready && !!deliveryQuote && deliveryQuote.inZone && !deliveryQuote.belowMin && !!(latInput && latInput.value);
+    }
+    submitButton.disabled = !ready;
   };
 
   const setFieldRequired = (field, required) => {
@@ -87,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('change', () => {
       applyServiceVisibility();
       if (input.value === 'pickup') loadPickupSlots();
+      try { onServiceChange(); } catch (e) {}
     });
   });
   applyServiceVisibility();
@@ -140,8 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
       list.appendChild(row);
     });
 
-    totalEl.textContent = `${total.toFixed(0)} ₽`;
-    submitButton.disabled = consentCheck ? !consentCheck.checked : false;
+    itemsTotal = total;
+    if (itemsTotalEl) itemsTotalEl.textContent = `${total.toFixed(0)} ₽`;
+    updateTotals();
+    updateSubmitState();
   };
 
   phoneInput?.addEventListener('input', () => {
@@ -266,12 +302,170 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderSummary();
 
-  consentCheck?.addEventListener('change', () => {
-    if (cart.length && consentCheck.checked) {
-      submitButton.disabled = false;
+  // --- Yandex map + delivery-zone quote ---
+  const SYK_CENTER = [61.6688, 50.8364];
+  const SYK_BOUNDS = [[61.60, 50.70], [61.72, 50.95]];
+  let deliveryMap = null;
+  let placemark = null;
+
+  const setZoneNote = (text, kind) => {
+    if (!zoneNote) return;
+    zoneNote.textContent = text || '';
+    zoneNote.classList.toggle('is-error', kind === 'error');
+    zoneNote.classList.toggle('is-ok', kind === 'ok');
+  };
+
+  const cartItemsPayload = () => cart.map((item) => ({ id: item.id, qty: item.qty || 1 }));
+
+  const renderDeliveryQuote = (q) => {
+    deliveryQuote = q;
+    if (getServiceType() !== 'delivery') return;
+    if (!q || !q.inZone) {
+      if (deliveryCostRow) deliveryCostRow.hidden = true;
+      setZoneNote('Адрес вне зоны доставки. Доступен только самовывоз.', 'error');
     } else {
-      submitButton.disabled = true;
+      if (deliveryCostRow) deliveryCostRow.hidden = false;
+      if (deliveryCostValue) {
+        deliveryCostValue.textContent = q.deliveryCost > 0 ? `${Number(q.deliveryCost).toFixed(0)} ₽` : 'Бесплатно';
+      }
+      if (deliveryEtaEl) deliveryEtaEl.textContent = q.etaMinutes ? `~${q.etaMinutes} мин` : '';
+      if (q.belowMin) {
+        setZoneNote(`Минимальный заказ для доставки — ${Number(q.minOrder).toFixed(0)} ₽.`, 'error');
+      } else {
+        const freeHint = (q.deliveryCost > 0 && q.freeFrom) ? ` Бесплатно от ${Number(q.freeFrom).toFixed(0)} ₽.` : '';
+        setZoneNote(`Доставка в зону «${q.zoneName}».${freeHint}`, 'ok');
+      }
     }
+    updateTotals();
+    updateSubmitState();
+  };
+
+  const requestQuote = async (coords) => {
+    if (!coords || !cart.length) return;
+    try {
+      const resp = await fetch('/api/delivery/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: coords[0], lon: coords[1], items: cartItemsPayload() }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) { setZoneNote(data.error || 'Не удалось рассчитать доставку.', 'error'); return; }
+      renderDeliveryQuote(data);
+    } catch (e) {
+      setZoneNote('Не удалось рассчитать доставку. Проверьте адрес или позвоните нам.', 'error');
+    }
+  };
+
+  const fillAddressFromGeoObject = (obj) => {
+    try {
+      const street = obj.getThoroughfare && obj.getThoroughfare();
+      const house = obj.getPremiseNumber && obj.getPremiseNumber();
+      const localities = obj.getLocalities && obj.getLocalities();
+      if (street && form.street) form.street.value = street;
+      if (house && form.house) form.house.value = house;
+      if (localities && localities.length && form.city) form.city.value = localities[0];
+    } catch (e) {}
+  };
+
+  const setPoint = (coords) => {
+    latInput.value = coords[0];
+    lonInput.value = coords[1];
+    if (!placemark) {
+      placemark = new ymaps.Placemark(coords, {}, { draggable: true });
+      placemark.events.add('dragend', () => {
+        const c = placemark.geometry.getCoordinates();
+        latInput.value = c[0];
+        lonInput.value = c[1];
+        ymaps.geocode(c, { results: 1 }).then((res) => {
+          const obj = res.geoObjects.get(0);
+          if (obj) fillAddressFromGeoObject(obj);
+        });
+        requestQuote(c);
+      });
+      deliveryMap.geoObjects.add(placemark);
+    } else {
+      placemark.geometry.setCoordinates(coords);
+    }
+    deliveryMap.setCenter(coords, Math.max(deliveryMap.getZoom(), 15));
+    requestQuote(coords);
+  };
+
+  const geocodeAddress = (value) => {
+    if (!value) return;
+    ymaps.geocode(value, { results: 1, boundedBy: SYK_BOUNDS }).then((res) => {
+      const obj = res.geoObjects.get(0);
+      if (!obj) { setZoneNote('Адрес не найден. Уточните улицу и дом.', 'error'); return; }
+      const coords = obj.geometry.getCoordinates();
+      const precision = obj.properties.get('metaDataProperty.GeocoderMetaData.precision');
+      fillAddressFromGeoObject(obj);
+      setPoint(coords);
+      if (precision && precision !== 'exact' && precision !== 'number') {
+        setZoneNote('Проверьте номер дома и при необходимости передвиньте точку на карте.', null);
+      }
+    }).catch(() => setZoneNote('Не удалось определить адрес. Попробуйте ещё раз.', 'error'));
+  };
+
+  const buildMap = () => {
+    deliveryMap = new ymaps.Map('deliveryMap', {
+      center: SYK_CENTER,
+      zoom: 12,
+      controls: ['zoomControl', 'geolocationControl'],
+    });
+
+    const suggest = new ymaps.SuggestView('street', { boundedBy: SYK_BOUNDS, results: 5 });
+    suggest.events.add('select', (e) => {
+      const value = e.get('item').value;
+      const city = (form.city && form.city.value.trim()) || 'Сыктывкар';
+      geocodeAddress(value.includes(city) ? value : `${city}, ${value}`);
+    });
+
+    // If the user types street+house manually, geocode on house blur too.
+    const tryManual = () => {
+      const city = (form.city && form.city.value.trim()) || 'Сыктывкар';
+      const street = form.street && form.street.value.trim();
+      const house = form.house && form.house.value.trim();
+      if (street && house) geocodeAddress(`${city}, ${street}, ${house}`);
+    };
+    if (form.house) form.house.addEventListener('change', tryManual);
+
+    mapAvailable = true;
+    setZoneNote('Начните вводить улицу — подскажем адрес и проверим зону доставки.', null);
+  };
+
+  const handleMapUnavailable = (msg) => {
+    mapAvailable = false;
+    setZoneNote(msg, null);
+    updateSubmitState();
+  };
+
+  const onServiceChange = () => {
+    const isDelivery = getServiceType() === 'delivery';
+    if (!isDelivery && deliveryCostRow) deliveryCostRow.hidden = true;
+    if (isDelivery && deliveryQuote) renderDeliveryQuote(deliveryQuote);
+    if (isDelivery && mapAvailable && deliveryMap) {
+      try { deliveryMap.container.fitToViewport(); } catch (e) {}
+    }
+    updateTotals();
+    updateSubmitState();
+  };
+
+  const initDeliveryMap = () => {
+    if (!document.getElementById('deliveryMap')) return;
+    if (typeof window.ymaps === 'undefined') {
+      handleMapUnavailable('Карта недоступна — заполните адрес вручную, зону проверим при оформлении.');
+      return;
+    }
+    window.ymaps.ready(() => {
+      try { buildMap(); } catch (e) {
+        handleMapUnavailable('Не удалось загрузить карту — заполните адрес вручную.');
+      }
+    });
+  };
+
+  initDeliveryMap();
+
+  consentCheck?.addEventListener('change', () => {
+    updateSubmitState();
   });
 
   form?.addEventListener('submit', async event => {
@@ -322,6 +516,10 @@ document.addEventListener('DOMContentLoaded', () => {
         house: form.house.value.trim(),
         apartment: form.apartment.value.trim(),
       };
+      if (latInput?.value && lonInput?.value) {
+        payload.lat = Number(latInput.value);
+        payload.lon = Number(lonInput.value);
+      }
     } else {
       payload.pickupTime = pickupSelect.value;
     }

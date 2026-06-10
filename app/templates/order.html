@@ -19,6 +19,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .delivery-map { width: 100%; height: 280px; border-radius: 12px; overflow: hidden; margin-top: 8px; background: #f0efe9; }
+    .delivery-zone-note { display: block; margin-top: 8px; color: #6b6b6b; font-size: 0.85rem; line-height: 1.4; }
+    .delivery-zone-note.is-error { color: #c0392b; }
+    .delivery-zone-note.is-ok { color: #1e7a3d; }
+    .summary-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; color: #4a4a4a; }
+    .summary-line small { color: #9a9a9a; font-weight: 500; }
+  </style>
 </head>
 <body>
   <div class="page-shell">
@@ -157,6 +165,13 @@
                   <label for="apartment">Квартира / офис / подъезд</label>
                   <input type="text" id="apartment" name="apartment" placeholder="Если нужно">
                 </div>
+                <div class="field full" data-service="delivery">
+                  <label>Проверка адреса на карте</label>
+                  <div id="deliveryMap" class="delivery-map"></div>
+                  <small id="deliveryZoneNote" class="delivery-zone-note">Начните вводить улицу — подскажем адрес и проверим зону доставки.</small>
+                </div>
+                <input type="hidden" id="deliveryLat" name="deliveryLat">
+                <input type="hidden" id="deliveryLon" name="deliveryLon">
                 <div class="field full">
                   <label for="comment">Комментарий к заказу</label>
                   <textarea id="comment" name="comment" placeholder="Код домофона, этаж, ориентир или другие детали"></textarea>
@@ -181,6 +196,14 @@
             <h2>Состав заказа</h2>
             <div id="orderSummary" hidden>
               <ul id="orderItemsList" class="order-summary-list"></ul>
+              <div class="summary-line">
+                <span>Блюда</span>
+                <strong id="itemsTotal">0 ₽</strong>
+              </div>
+              <div class="summary-line" id="deliveryCostRow" hidden>
+                <span>Доставка <small id="deliveryEta"></small></span>
+                <strong id="deliveryCostValue">—</strong>
+              </div>
               <div class="summary-total">
                 <span>Итого</span>
                 <strong id="orderTotal">0 ₽</strong>
@@ -208,6 +231,7 @@
     </footer>
   </div>
 
+  {% if yandex_maps_key %}<script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_key }}&lang=ru_RU" defer></script>{% endif %}
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/order.js') }}" defer></script>
 </body>

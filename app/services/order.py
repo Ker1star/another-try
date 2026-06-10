@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from app.models import MenuItem
 from app.services.presto_config import get_point_id as resolve_point_id, get_price_list_id as resolve_price_list_id
 from app.services.auth import auth as fetch_token
+from app.services.delivery_zones import quote as zone_quote
 from app.services.menu import upsert_menu
 
 load_dotenv()
@@ -25,6 +26,8 @@ PRESTO_DELIVERY_COST_URL = os.getenv('PRESTO_DELIVERY_COST_URL', 'https://api.sb
 ORDER_LEAD_MINUTES = int(os.getenv('ORDER_LEAD_MINUTES', '15'))
 ORDER_TIMEZONE = os.getenv('ORDER_TIMEZONE', 'Europe/Moscow')
 ORDER_FALLBACK_UTC_OFFSET_HOURS = int(os.getenv('ORDER_FALLBACK_UTC_OFFSET_HOURS', '3'))
+YANDEX_GEOCODER_KEY = os.getenv('YANDEX_GEOCODER_KEY')
+YANDEX_GEOCODER_URL = os.getenv('YANDEX_GEOCODER_URL', 'https://geocode-maps.yandex.ru/1.x/')
 
 
 class PrestoOrderError(Exception):
@@ -155,6 +158,65 @@ def _fetch_delivery_context(point_id, address_full, address_json=None):
     return response.json()
 
 
+def _geocode_address(address_full):
+    """Server-side geocode via Yandex HTTP Geocoder. Returns (lat, lon) or None.
+
+    Returns None when no key is configured or the request fails, so callers can
+    fall back to client-supplied coordinates.
+    """
+    if not YANDEX_GEOCODER_KEY:
+        return None
+    try:
+        response = requests.get(
+            YANDEX_GEOCODER_URL,
+            params={
+                'apikey': YANDEX_GEOCODER_KEY,
+                'geocode': address_full,
+                'format': 'json',
+                'results': 1,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        members = response.json()['response']['GeoObjectCollection']['featureMember']
+        if not members:
+            return None
+        # Yandex Point.pos is "lon lat"; we return (lat, lon).
+        lon, lat = (float(value) for value in members[0]['GeoObject']['Point']['pos'].split())
+        return (lat, lon)
+    except (requests.RequestException, KeyError, ValueError, IndexError):
+        logger.warning("Server geocode failed for address=%r", address_full)
+        return None
+
+
+def resolve_delivery_pricing(payload, subtotal, address_full=None):
+    """Server-authoritative delivery zone + price for a delivery order.
+
+    Coordinates come from server-side geocoding of the textual address (trusted),
+    falling back to client-supplied lat/lon only when the geocoder is unavailable.
+    Raises ValueError if the address is outside all zones or below the zone minimum.
+    Returns the zone quote dict augmented with resolved lat/lon.
+    """
+    if address_full is None:
+        address_full = _build_address_full(payload)
+
+    coords = _geocode_address(address_full)
+    if coords is None:
+        try:
+            coords = (float(payload['lat']), float(payload['lon']))
+        except (KeyError, TypeError, ValueError):
+            raise ValueError('Не удалось определить координаты адреса. Уточните адрес на карте.')
+
+    lat, lon = coords
+    quote = zone_quote(lat, lon, subtotal)
+    if not quote.get('inZone'):
+        raise ValueError('Этот адрес вне зоны доставки. Пожалуйста, оформите самовывоз.')
+    if quote.get('belowMin'):
+        raise ValueError(f'Минимальная сумма заказа для доставки — {quote["minOrder"]:.0f} ₽.')
+
+    return {**quote, 'lat': lat, 'lon': lon}
+
+
 def _load_menu_items(raw_items):
     item_ids = [item.get('id') for item in raw_items if item.get('id') is not None]
     if not item_ids:
@@ -278,6 +340,13 @@ def build_order_payload(payload, *, base_url=None):
                 except json.JSONDecodeError:
                     raise ValueError('Некорректный addressJson для доставки.')
 
+        subtotal = sum(
+            float(menu_map[item['id']].price or 0) * max(1, int(item.get('qty') or 1))
+            for item in raw_items
+            if item.get('id') is not None
+        )
+        pricing = resolve_delivery_pricing(payload, subtotal, address_full)
+
         delivery_context = {}
         try:
             delivery_context = _fetch_delivery_context(point_id, address_full, address_json)
@@ -290,6 +359,9 @@ def build_order_payload(payload, *, base_url=None):
             'paymentType': payment_type,
             'persons': payload.get('persons'),
             'district': payload.get('district') or delivery_context.get('district'),
+            # TENTATIVE Saby field name — verify on the first real server order whether
+            # Saby honours it on the receipt/courier sheet; YooKassa charge is authoritative.
+            'deliveryCost': pricing['deliveryCost'],
         }
 
         if address_json:

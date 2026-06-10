@@ -179,7 +179,7 @@ def create_app():
 
     @app.route('/order')
     def order_page():
-        return render_template('order.html')
+        return render_template('order.html', yandex_maps_key=os.getenv('YANDEX_MAPS_JS_KEY', ''))
 
     @app.route('/')
     def index():
