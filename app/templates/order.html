@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     .delivery-map { width: 100%; height: 280px; border-radius: 12px; overflow: hidden; margin-top: 8px; background: #f0efe9; }
+    .delivery-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .delivery-zone-note { display: block; margin-top: 8px; color: #6b6b6b; font-size: 0.85rem; line-height: 1.4; }
     .delivery-zone-note.is-error { color: #c0392b; }
     .delivery-zone-note.is-ok { color: #1e7a3d; }
@@ -166,9 +167,11 @@
                   <input type="text" id="apartment" name="apartment" placeholder="Если нужно">
                 </div>
                 <div class="field full" data-service="delivery">
-                  <label>Проверка адреса на карте</label>
-                  <div id="deliveryMap" class="delivery-map"></div>
-                  <small id="deliveryZoneNote" class="delivery-zone-note">Начните вводить улицу — подскажем адрес и проверим зону доставки.</small>
+                  <label>Адрес на карте</label>
+                  <div id="deliveryMapBox" class="delivery-map" data-static-key="{{ yandex_static_key }}" hidden>
+                    <img id="deliveryMapImg" alt="Адрес на карте">
+                  </div>
+                  <small id="deliveryZoneNote" class="delivery-zone-note">Заполните улицу и дом — проверим зону доставки.</small>
                 </div>
                 <input type="hidden" id="deliveryLat" name="deliveryLat">
                 <input type="hidden" id="deliveryLon" name="deliveryLon">
@@ -231,7 +234,6 @@
     </footer>
   </div>
 
-  {% if yandex_maps_key %}<script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_key }}&lang=ru_RU" defer></script>{% endif %}
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/order.js') }}" defer></script>
 </body>

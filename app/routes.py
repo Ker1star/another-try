@@ -13,9 +13,8 @@ from app.services.delivery_hours import (
     is_pickup_time_valid,
     parse_pickup_time,
 )
-from app.services.delivery_zones import quote as delivery_quote
 from app.services.menu import upsert_menu
-from app.services.order import PrestoOrderError, calculate_order_total, create_order
+from app.services.order import PrestoOrderError, calculate_order_total, create_order, geocode_quote
 from app.services.payment import create_payment, handle_webhook
 from app.services.presto_config import (
     get_point_id,
@@ -266,17 +265,11 @@ def pickup_slots_route():
 def delivery_quote_route():
     payload = request.get_json(silent=True) or {}
     try:
-        lat = float(payload.get('lat'))
-        lon = float(payload.get('lon'))
-    except (TypeError, ValueError):
-        return jsonify({'error': 'Не переданы координаты адреса.'}), 400
-
-    try:
         subtotal = calculate_order_total(payload.get('items') or [])
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 
-    return jsonify(delivery_quote(lat, lon, subtotal))
+    return jsonify(geocode_quote(payload.get('address') or {}, subtotal))
 
 
 def _validate_service(payload):

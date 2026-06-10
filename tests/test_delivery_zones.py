@@ -95,6 +95,41 @@ def test_resolve_degrades_to_none_without_coords_or_geocoder():
     assert order_mod.resolve_delivery_pricing(payload, subtotal=1000) is None
 
 
+# --- geocode_quote (live preview for the order form) ---
+
+def test_geocode_quote_incomplete_address():
+    result = order_mod.geocode_quote({'city': 'Сыктывкар'}, subtotal=1000)  # no street/house
+    assert result['found'] is False
+    assert result['reason'] == 'incomplete'
+
+
+def test_geocode_quote_no_geocoder_key():
+    saved = order_mod.YANDEX_GEOCODER_KEY
+    order_mod.YANDEX_GEOCODER_KEY = None
+    try:
+        result = order_mod.geocode_quote(_ADDR, subtotal=1000)
+        assert result['found'] is False
+        assert result['reason'] == 'no_geocoder'
+    finally:
+        order_mod.YANDEX_GEOCODER_KEY = saved
+
+
+def test_geocode_quote_found_in_zone():
+    saved_key = order_mod.YANDEX_GEOCODER_KEY
+    saved_fn = order_mod._geocode_address
+    order_mod.YANDEX_GEOCODER_KEY = 'dummy'
+    order_mod._geocode_address = lambda address_full: INSIDE
+    try:
+        result = order_mod.geocode_quote(_ADDR, subtotal=1000)
+        assert result['found'] is True
+        assert result['inZone'] is True
+        assert result['deliveryCost'] == 200
+        assert result['lat'] == INSIDE[0]
+    finally:
+        order_mod.YANDEX_GEOCODER_KEY = saved_key
+        order_mod._geocode_address = saved_fn
+
+
 if __name__ == '__main__':
     failures = 0
     for name, fn in sorted(globals().items()):

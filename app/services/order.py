@@ -227,6 +227,35 @@ def resolve_delivery_pricing(payload, subtotal, address_full=None):
     return {**quote, 'lat': lat, 'lon': lon}
 
 
+def geocode_quote(address, subtotal):
+    """Live delivery preview for the order form: server-geocode the address, then
+    zone-quote. Never raises — returns a status dict the frontend renders directly.
+
+    `reason` distinguishes the failure modes so the frontend can act correctly:
+      - 'incomplete'  — city/street/house not filled in yet
+      - 'no_geocoder' — geocoder key not configured (degrade: order still allowed)
+      - 'not_found'   — geocoder ran but couldn't resolve the address (fix address)
+    """
+    try:
+        address_full = _build_address_full({'address': address})
+    except ValueError as exc:
+        return {'found': False, 'reason': 'incomplete', 'error': str(exc)}
+
+    if not YANDEX_GEOCODER_KEY:
+        return {'found': False, 'reason': 'no_geocoder'}
+
+    coords = _geocode_address(address_full)
+    if coords is None:
+        return {
+            'found': False,
+            'reason': 'not_found',
+            'error': 'Не удалось определить адрес. Проверьте улицу и дом.',
+        }
+
+    lat, lon = coords
+    return {'found': True, 'lat': lat, 'lon': lon, **zone_quote(lat, lon, subtotal)}
+
+
 def _load_menu_items(raw_items):
     item_ids = [item.get('id') for item in raw_items if item.get('id') is not None]
     if not item_ids:
