@@ -28,6 +28,9 @@ ORDER_TIMEZONE = os.getenv('ORDER_TIMEZONE', 'Europe/Moscow')
 ORDER_FALLBACK_UTC_OFFSET_HOURS = int(os.getenv('ORDER_FALLBACK_UTC_OFFSET_HOURS', '3'))
 YANDEX_GEOCODER_KEY = os.getenv('YANDEX_GEOCODER_KEY')
 YANDEX_GEOCODER_URL = os.getenv('YANDEX_GEOCODER_URL', 'https://geocode-maps.yandex.ru/1.x/')
+YANDEX_SUGGEST_KEY = os.getenv('YANDEX_SUGGEST_KEY')
+YANDEX_SUGGEST_URL = os.getenv('YANDEX_SUGGEST_URL', 'https://suggest-maps.yandex.ru/v1/suggest')
+ORDER_CITY = os.getenv('ORDER_CITY', 'Сыктывкар')
 
 
 class PrestoOrderError(Exception):
@@ -101,18 +104,30 @@ def _normalize_phone(phone):
 
 def _build_address_full(payload):
     address = payload.get('address') or {}
-    city = (address.get('city') or '').strip()
+    city = (address.get('city') or '').strip() or ORDER_CITY
     street = (address.get('street') or '').strip()
     house = (address.get('house') or '').strip()
     apartment = (address.get('apartment') or '').strip()
 
-    if not city or not street or not house:
-        raise ValueError('Для доставки заполните город, улицу и дом.')
+    if not street or not house:
+        raise ValueError('Для доставки заполните улицу и дом.')
 
     parts = [city, street, house]
     if apartment:
         parts.append(f'кв. {apartment}')
     return ', '.join(parts)
+
+
+def _geocode_string(payload):
+    """Address string for geocoding: city + street + house, WITHOUT the apartment
+    (the flat number only confuses the geocoder)."""
+    address = payload.get('address') or {}
+    city = (address.get('city') or '').strip() or ORDER_CITY
+    street = (address.get('street') or '').strip()
+    house = (address.get('house') or '').strip()
+    if not street or not house:
+        raise ValueError('Для доставки заполните улицу и дом.')
+    return ', '.join([city, street, house])
 
 
 def _format_order_datetime(raw_value):
@@ -189,7 +204,7 @@ def _geocode_address(address_full):
         return None
 
 
-def resolve_delivery_pricing(payload, subtotal, address_full=None):
+def resolve_delivery_pricing(payload, subtotal):
     """Server-authoritative delivery zone + price for a delivery order.
 
     Coordinates come from server-side geocoding of the textual address (trusted),
@@ -203,10 +218,12 @@ def resolve_delivery_pricing(payload, subtotal, address_full=None):
     Raises ValueError only when coordinates ARE known and the address is outside all
     zones or below the zone minimum.
     """
-    if address_full is None:
-        address_full = _build_address_full(payload)
+    try:
+        geocode_str = _geocode_string(payload)
+    except ValueError:
+        geocode_str = None
 
-    coords = _geocode_address(address_full)
+    coords = _geocode_address(geocode_str) if geocode_str else None
     if coords is None:
         try:
             coords = (float(payload['lat']), float(payload['lon']))
@@ -237,14 +254,14 @@ def geocode_quote(address, subtotal):
       - 'not_found'   — geocoder ran but couldn't resolve the address (fix address)
     """
     try:
-        address_full = _build_address_full({'address': address})
+        geocode_str = _geocode_string({'address': address})
     except ValueError as exc:
         return {'found': False, 'reason': 'incomplete', 'error': str(exc)}
 
     if not YANDEX_GEOCODER_KEY:
         return {'found': False, 'reason': 'no_geocoder'}
 
-    coords = _geocode_address(address_full)
+    coords = _geocode_address(geocode_str)
     if coords is None:
         return {
             'found': False,
@@ -254,6 +271,38 @@ def geocode_quote(address, subtotal):
 
     lat, lon = coords
     return {'found': True, 'lat': lat, 'lon': lon, **zone_quote(lat, lon, subtotal)}
+
+
+def suggest_address(query):
+    """Street/address autocomplete via Yandex Suggest API, biased to the delivery
+    city. Returns a list of {title, subtitle} dicts; [] when no key or on error."""
+    query = (query or '').strip()
+    if not query or not YANDEX_SUGGEST_KEY:
+        return []
+    try:
+        response = requests.get(
+            YANDEX_SUGGEST_URL,
+            params={
+                'apikey': YANDEX_SUGGEST_KEY,
+                'text': f'{ORDER_CITY}, {query}',
+                'lang': 'ru_RU',
+                'results': 7,
+            },
+            timeout=8,
+        )
+        response.raise_for_status()
+        results = response.json().get('results', [])
+    except (requests.RequestException, ValueError):
+        logger.warning("Suggest request failed for query=%r", query)
+        return []
+
+    suggestions = []
+    for item in results:
+        title = (item.get('title') or {}).get('text') or ''
+        subtitle = (item.get('subtitle') or {}).get('text') or ''
+        if title:
+            suggestions.append({'title': title, 'subtitle': subtitle})
+    return suggestions
 
 
 def _load_menu_items(raw_items):
@@ -384,7 +433,7 @@ def build_order_payload(payload, *, base_url=None):
             for item in raw_items
             if item.get('id') is not None
         )
-        pricing = resolve_delivery_pricing(payload, subtotal, address_full)
+        pricing = resolve_delivery_pricing(payload, subtotal)
 
         delivery_context = {}
         try:

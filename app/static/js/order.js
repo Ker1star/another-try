@@ -402,12 +402,65 @@ document.addEventListener('DOMContentLoaded', () => {
     quoteTimer = setTimeout(requestQuote, QUOTE_DEBOUNCE_MS);
   };
 
-  ['city', 'street', 'house'].forEach((name) => {
-    if (form[name]) {
-      form[name].addEventListener('input', scheduleQuote);
-      form[name].addEventListener('change', requestQuote);
-    }
+  // Quote triggers: house drives the debounced quote; "change" on street/house finalizes.
+  if (form.house) form.house.addEventListener('input', scheduleQuote);
+  ['street', 'house'].forEach((name) => {
+    if (form[name]) form[name].addEventListener('change', requestQuote);
   });
+
+  // --- Street autocomplete via /api/suggest ---
+  const suggestBox = document.getElementById('streetSuggest');
+  let suggestTimer = null;
+
+  const hideSuggest = () => {
+    if (!suggestBox) return;
+    suggestBox.hidden = true;
+    suggestBox.innerHTML = '';
+  };
+
+  const renderSuggestions = (items) => {
+    if (!suggestBox) return;
+    if (!items.length) { hideSuggest(); return; }
+    suggestBox.innerHTML = '';
+    items.forEach((it) => {
+      const li = document.createElement('li');
+      li.textContent = it.title;
+      if (it.subtitle) {
+        const sub = document.createElement('small');
+        sub.textContent = it.subtitle;
+        li.appendChild(sub);
+      }
+      li.addEventListener('mousedown', (e) => {
+        e.preventDefault();   // fire before the input's blur hides the list
+        if (form.street) form.street.value = it.title;
+        hideSuggest();
+        if (form.house) form.house.focus();
+        requestQuote();
+      });
+      suggestBox.appendChild(li);
+    });
+    suggestBox.hidden = false;
+  };
+
+  const fetchSuggest = async () => {
+    const q = (form.street && form.street.value.trim()) || '';
+    if (q.length < 1) { hideSuggest(); return; }
+    try {
+      const resp = await fetch(`/api/suggest?q=${encodeURIComponent(q)}`);
+      if (!resp.ok) { hideSuggest(); return; }
+      renderSuggestions(await resp.json());
+    } catch (e) {
+      hideSuggest();
+    }
+  };
+
+  if (form.street) {
+    form.street.addEventListener('input', () => {
+      clearTimeout(suggestTimer);
+      suggestTimer = setTimeout(fetchSuggest, 250);
+    });
+    form.street.addEventListener('blur', () => setTimeout(hideSuggest, 150));
+  }
 
   const onServiceChange = () => {
     const isDelivery = getServiceType() === 'delivery';

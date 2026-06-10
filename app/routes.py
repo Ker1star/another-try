@@ -14,7 +14,13 @@ from app.services.delivery_hours import (
     parse_pickup_time,
 )
 from app.services.menu import upsert_menu
-from app.services.order import PrestoOrderError, calculate_order_total, create_order, geocode_quote
+from app.services.order import (
+    PrestoOrderError,
+    calculate_order_total,
+    create_order,
+    geocode_quote,
+    suggest_address,
+)
 from app.services.payment import create_payment, handle_webhook
 from app.services.presto_config import (
     get_point_id,
@@ -270,6 +276,11 @@ def delivery_quote_route():
         return jsonify({'error': str(exc)}), 400
 
     return jsonify(geocode_quote(payload.get('address') or {}, subtotal))
+
+
+@api_bp.route('/suggest', methods=['GET'])
+def suggest_route():
+    return jsonify(suggest_address(request.args.get('q', '')))
 
 
 def _validate_service(payload):

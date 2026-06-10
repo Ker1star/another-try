@@ -27,6 +27,10 @@
     .delivery-zone-note.is-ok { color: #1e7a3d; }
     .summary-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; color: #4a4a4a; }
     .summary-line small { color: #9a9a9a; font-weight: 500; }
+    .addr-suggest { position: absolute; left: 0; right: 0; top: 100%; z-index: 30; margin: 4px 0 0; padding: 4px; list-style: none; background: #fff; border: 1px solid #e0ded7; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); max-height: 240px; overflow-y: auto; }
+    .addr-suggest li { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+    .addr-suggest li:hover, .addr-suggest li.is-active { background: #f3f1ea; }
+    .addr-suggest small { display: block; color: #9a9a9a; font-size: .78rem; }
   </style>
 </head>
 <body>
@@ -150,13 +154,11 @@
                   </select>
                 </div>
 
-                <div class="field" data-service="delivery">
-                  <label for="city">Город</label>
-                  <input type="text" id="city" name="city" value="Сыктывкар" required>
-                </div>
-                <div class="field" data-service="delivery">
+                <input type="hidden" id="city" name="city" value="Сыктывкар">
+                <div class="field full" data-service="delivery" style="position: relative">
                   <label for="street">Улица</label>
-                  <input type="text" id="street" name="street" placeholder="Например, Сысольское шоссе" required>
+                  <input type="text" id="street" name="street" placeholder="Начните вводить улицу" autocomplete="off" required>
+                  <ul id="streetSuggest" class="addr-suggest" hidden></ul>
                 </div>
                 <div class="field" data-service="delivery">
                   <label for="house">Дом</label>
