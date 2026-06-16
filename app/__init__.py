@@ -1,9 +1,10 @@
+import hmac
 import os
 
 import click
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -33,6 +34,17 @@ def _ensure_runtime_schema(connection=None):
             alter_statements.append("ALTER TABLE menu_items ADD COLUMN in_restaurant BOOLEAN NOT NULL DEFAULT TRUE")
         if 'in_family' not in cols:
             alter_statements.append("ALTER TABLE menu_items ADD COLUMN in_family BOOLEAN NOT NULL DEFAULT FALSE")
+        if 'sort_order' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0")
+        if 'hidden' not in cols:
+            alter_statements.append("ALTER TABLE menu_items ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT FALSE")
+
+    if 'categories' in tables:
+        cols = {c['name'] for c in inspector.get_columns('categories')}
+        if 'sort_order' not in cols:
+            alter_statements.append("ALTER TABLE categories ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0")
+        if 'hidden' not in cols:
+            alter_statements.append("ALTER TABLE categories ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT FALSE")
 
     if 'pending_orders' in tables:
         cols = {c['name'] for c in inspector.get_columns('pending_orders')}
@@ -194,6 +206,24 @@ def create_app():
     @app.route('/order')
     def order_page():
         return render_template('order.html', yandex_static_key=os.getenv('YANDEX_STATIC_KEY', ''))
+
+    @app.route('/admin')
+    def admin_page():
+        return render_template('admin.html', authed=session.get('admin') is True)
+
+    @app.route('/admin/login', methods=['POST'])
+    def admin_login():
+        password = os.getenv('ADMIN_PASSWORD')
+        given = request.form.get('password') or ''
+        if password and hmac.compare_digest(given, password):
+            session['admin'] = True
+            return redirect(url_for('admin_page'))
+        return render_template('admin.html', authed=False, error='Неверный пароль'), 401
+
+    @app.route('/admin/logout')
+    def admin_logout():
+        session.pop('admin', None)
+        return redirect(url_for('admin_page'))
 
     @app.route('/')
     def index():

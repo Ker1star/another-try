@@ -33,6 +33,8 @@ class Category(db.Model):
     sbis_id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
     parent_sbis_id = db.Column(db.Integer, db.ForeignKey('categories.sbis_id'), nullable=True)
+    sort_order = db.Column(db.Integer, default=0, nullable=False)  # admin ordering; not touched by Saby sync
+    hidden = db.Column(db.Boolean, default=False, nullable=False)  # admin frontend hide
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 
@@ -53,6 +55,8 @@ class MenuItem(db.Model):
     available_for_delivery = db.Column(db.Boolean, default=True, nullable=False)
     in_restaurant = db.Column(db.Boolean, default=True, nullable=False)
     in_family = db.Column(db.Boolean, default=False, nullable=False)
+    sort_order = db.Column(db.Integer, default=0, nullable=False)  # admin ordering; not touched by Saby sync
+    hidden = db.Column(db.Boolean, default=False, nullable=False)  # admin frontend hide (stop-list)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     category = db.relationship('Category', backref='items')

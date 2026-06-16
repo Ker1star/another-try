@@ -1,10 +1,11 @@
+import json
 import os
 
-from flask import Blueprint, Response, abort, current_app, jsonify, request
+from flask import Blueprint, Response, abort, current_app, jsonify, request, session
 import requests
 
 from app import db
-from app.models import Category, MenuItem
+from app.models import Category, MenuItem, PendingOrder
 from app.services.auth import auth as fetch_token
 from app.services.delivery_hours import (
     get_delivery_status,
@@ -65,6 +66,13 @@ def _require_database():
     return _database_error_response()
 
 
+def _require_admin():
+    """Returns None when the admin session is active, else a 401 response."""
+    if session.get('admin') is True:
+        return None
+    return jsonify({'error': 'Unauthorized'}), 401
+
+
 def _resolve_menu_mode():
     mode = (request.args.get('mode') or 'restaurant').strip().lower()
     if mode not in {'restaurant', 'delivery', 'family'}:
@@ -73,7 +81,7 @@ def _resolve_menu_mode():
 
 
 def _item_visible_for_mode(item, mode):
-    if not item.published:
+    if not item.published or getattr(item, 'hidden', False):
         return False
     if mode == 'family':
         return bool(item.in_family)
@@ -84,7 +92,8 @@ def _item_visible_for_mode(item, mode):
 
 
 def _sort_by_name(entity):
-    return (entity.name or '').casefold()
+    # Admin sort_order first, then name as a stable tiebreaker.
+    return (getattr(entity, 'sort_order', 0) or 0, (entity.name or '').casefold())
 
 
 def _serialize_menu_item(item, parent_sbis_id):
@@ -117,6 +126,8 @@ def _collect_visible_items(category, children_by_parent, mode, visited=None):
     ]
 
     for child in sorted(children_by_parent.get(category.sbis_id, []), key=_sort_by_name):
+        if getattr(child, 'hidden', False):
+            continue
         visible_items.extend(_collect_visible_items(child, children_by_parent, mode, visited.copy()))
 
     return visible_items
@@ -124,7 +135,7 @@ def _collect_visible_items(category, children_by_parent, mode, visited=None):
 
 def _serialize_menu(mode):
     data = []
-    categories = Category.query.order_by(Category.name).all()
+    categories = Category.query.order_by(Category.sort_order, Category.name).all()
     category_ids = {category.sbis_id for category in categories}
     children_by_parent = {}
     for category in categories:
@@ -137,6 +148,8 @@ def _serialize_menu(mode):
     ]
 
     for cat in sorted(parents, key=_sort_by_name):
+        if getattr(cat, 'hidden', False):
+            continue
         visible_items = _collect_visible_items(cat, children_by_parent, mode)
         if not visible_items:
             continue
@@ -161,6 +174,96 @@ def menu_route():
 
     mode = _resolve_menu_mode()
     return jsonify({'mode': mode, 'data': _serialize_menu(mode)})
+
+
+# --- Admin (single-password session) ---
+
+@api_bp.route('/admin/menu', methods=['GET'])
+def admin_menu_route():
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    categories = Category.query.order_by(Category.sort_order, Category.name).all()
+    data = []
+    for cat in categories:
+        items = sorted(cat.items, key=_sort_by_name)
+        data.append({
+            'id': cat.sbis_id,
+            'name': cat.name,
+            'hidden': bool(cat.hidden),
+            'items': [
+                {
+                    'id': item.sbis_id,
+                    'name': item.name,
+                    'hidden': bool(item.hidden),
+                    'price': float(item.price or 0),
+                }
+                for item in items
+            ],
+        })
+    return jsonify({'categories': data})
+
+
+@api_bp.route('/admin/save', methods=['POST'])
+def admin_save_route():
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    payload = request.get_json(silent=True) or {}
+    categories = payload.get('categories') or []
+    cat_map = {c.sbis_id: c for c in Category.query.all()}
+    item_map = {i.sbis_id: i for i in MenuItem.query.all()}
+
+    for cat_index, cat_entry in enumerate(categories):
+        cat = cat_map.get(cat_entry.get('id'))
+        if cat is not None:
+            cat.sort_order = cat_index
+            cat.hidden = bool(cat_entry.get('hidden'))
+        for item_index, item_entry in enumerate(cat_entry.get('items') or []):
+            item = item_map.get(item_entry.get('id'))
+            if item is not None:
+                item.sort_order = item_index
+                item.hidden = bool(item_entry.get('hidden'))
+
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
+
+@api_bp.route('/admin/orders', methods=['GET'])
+def admin_orders_route():
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    orders = PendingOrder.query.order_by(PendingOrder.created_at.desc()).limit(50).all()
+    out = []
+    for order in orders:
+        try:
+            p = json.loads(order.payload_json)
+        except Exception:
+            p = {}
+        addr = p.get('address') or {}
+        out.append({
+            'id': order.id,
+            'status': order.status,
+            'created': order.created_at.isoformat() if order.created_at else None,
+            'service': p.get('serviceType'),
+            'name': p.get('customerName'),
+            'phone': p.get('phone'),
+            'address': ', '.join(x for x in [addr.get('street'), addr.get('house')] if x),
+        })
+    return jsonify({'orders': out})
 
 
 @api_bp.route('/menu/delivery-availability', methods=['POST'])

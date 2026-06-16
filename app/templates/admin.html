@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Админка — Марта</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #f5f4ef; color: #222; }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 20px 16px 80px; }
+    h1 { font-size: 1.4rem; }
+    .login { max-width: 320px; margin: 80px auto; text-align: center; }
+    .login input { width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; }
+    .login button, .btn { margin-top: 12px; padding: 12px 20px; font-size: 1rem; border: 0; border-radius: 10px; background: #c0392b; color: #fff; cursor: pointer; }
+    .err { color: #c0392b; }
+    .ok { color: #1e7a3d; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; background: #f5f4ef; padding: 12px 0; border-bottom: 1px solid #e3e1d9; z-index: 5; }
+    .topbar a { color: #777; font-size: .9rem; }
+    #status { min-height: 1.2em; font-size: .9rem; padding: 6px 0; }
+    .cat { background: #fff; border: 1px solid #e3e1d9; border-radius: 12px; margin: 12px 0; overflow: hidden; }
+    .cat-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #faf9f5; border-bottom: 1px solid #eee; }
+    .item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #f2f1ec; }
+    .item:last-child { border-bottom: 0; }
+    .item .name { flex: 1; }
+    .item .price { color: #888; font-size: .85rem; white-space: nowrap; }
+    .arrows button { width: 26px; height: 26px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: .9rem; line-height: 1; }
+    .hide { font-size: .8rem; color: #999; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+    .is-hidden > .name, .is-hidden > strong, .cat.is-hidden .cat-head strong { opacity: .4; text-decoration: line-through; }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; background: #fff; border-radius: 12px; overflow: hidden; }
+    th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid #f0efe9; }
+    th { background: #faf9f5; }
+    h2 { font-size: 1.1rem; margin-top: 28px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+  {% if not authed %}
+    <div class="login">
+      <h1>Админка «Марта»</h1>
+      {% if error %}<p class="err">{{ error }}</p>{% endif %}
+      <form method="POST" action="{{ url_for('admin_login') }}">
+        <input type="password" name="password" placeholder="Пароль" autofocus autocomplete="current-password">
+        <button type="submit">Войти</button>
+      </form>
+    </div>
+  {% else %}
+    <div class="topbar">
+      <h1>Меню: порядок и видимость</h1>
+      <div>
+        <button class="btn" id="saveBtn">Сохранить</button>
+        <a href="{{ url_for('admin_logout') }}">Выйти</a>
+      </div>
+    </div>
+    <div id="status"></div>
+    <p style="font-size:.85rem;color:#999">Стрелками меняй порядок, галочкой «скрыть» убирай с сайта. Имена и цены приходят из Saby — тут не редактируются. Не забудь «Сохранить».</p>
+    <div id="menuEditor">Загрузка…</div>
+
+    <h2>Последние заказы</h2>
+    <div id="ordersLog">Загрузка…</div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+  {% endif %}
+  </div>
+</body>
+</html>
