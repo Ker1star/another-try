@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const ordersLog = document.getElementById('ordersLog');
 
   let state = [];  // [{id, name, hidden, items: [{id, name, hidden, price}]}]
+  let currentMode = 'restaurant';
 
   const escapeHtml = (s) => (s || '').replace(/[&<>"]/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
@@ -94,8 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const loadMenu = async () => {
+    editor.textContent = 'Загрузка…';
     try {
-      const resp = await fetch('/api/admin/menu');
+      const resp = await fetch(`/api/admin/menu?mode=${encodeURIComponent(currentMode)}`);
       if (!resp.ok) { editor.textContent = 'Сессия истекла — обновите страницу и войдите заново.'; return; }
       const data = await resp.json();
       state = data.categories || [];
@@ -104,6 +106,17 @@ document.addEventListener('DOMContentLoaded', () => {
       editor.textContent = 'Не удалось загрузить меню.';
     }
   };
+
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.classList.contains('is-active')) return;
+      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      currentMode = tab.dataset.mode;
+      setStatus('');
+      loadMenu();
+    });
+  });
 
   const loadOrders = async () => {
     try {

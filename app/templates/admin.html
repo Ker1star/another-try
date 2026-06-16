@@ -16,6 +16,9 @@
     .ok { color: #1e7a3d; }
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; background: #f5f4ef; padding: 12px 0; border-bottom: 1px solid #e3e1d9; z-index: 5; }
     .topbar a { color: #777; font-size: .9rem; }
+    .tabs { display: flex; gap: 8px; margin: 10px 0; }
+    .tab { padding: 8px 16px; border: 1px solid #d8d6cd; background: #fff; border-radius: 999px; cursor: pointer; font-size: .9rem; }
+    .tab.is-active { background: #c0392b; color: #fff; border-color: #c0392b; }
     #status { min-height: 1.2em; font-size: .9rem; padding: 6px 0; }
     .cat { background: #fff; border: 1px solid #e3e1d9; border-radius: 12px; margin: 12px 0; overflow: hidden; }
     .cat-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #faf9f5; border-bottom: 1px solid #eee; }
@@ -52,7 +55,11 @@
       </div>
     </div>
     <div id="status"></div>
-    <p style="font-size:.85rem;color:#999">Стрелками меняй порядок, галочкой «скрыть» убирай с сайта. Имена и цены приходят из Saby — тут не редактируются. Не забудь «Сохранить».</p>
+    <div class="tabs">
+      <button class="tab is-active" data-mode="restaurant">Меню</button>
+      <button class="tab" data-mode="delivery">Доставка</button>
+    </div>
+    <p style="font-size:.85rem;color:#999">Стрелками меняй порядок, галочкой «скрыть» убирай с сайта. Имена и цены приходят из Saby — тут не редактируются. Сохраняй до переключения вкладки. Порядок/скрытие у позиций, которые есть и в меню, и в доставке — общие.</p>
     <div id="menuEditor">Загрузка…</div>
 
     <h2>Последние заказы</h2>

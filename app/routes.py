@@ -80,8 +80,9 @@ def _resolve_menu_mode():
     return mode
 
 
-def _item_visible_for_mode(item, mode):
-    if not item.published or getattr(item, 'hidden', False):
+def _item_in_mode(item, mode):
+    """Price-list membership for a mode (published + flag), ignoring admin hidden."""
+    if not item.published:
         return False
     if mode == 'family':
         return bool(item.in_family)
@@ -89,6 +90,10 @@ def _item_visible_for_mode(item, mode):
         return bool(item.available_for_delivery) and not bool(item.in_family)
     # restaurant
     return bool(item.in_restaurant) and not bool(item.in_family)
+
+
+def _item_visible_for_mode(item, mode):
+    return _item_in_mode(item, mode) and not getattr(item, 'hidden', False)
 
 
 def _sort_by_name(entity):
@@ -178,6 +183,47 @@ def menu_route():
 
 # --- Admin (single-password session) ---
 
+def _collect_admin_items(category, children_by_parent, mode, visited=None):
+    """Items of a top-level category for a mode, flattening children like the public
+    menu — but INCLUDING hidden items so admin can toggle them back."""
+    visited = visited or set()
+    if category.sbis_id in visited:
+        return []
+    visited.add(category.sbis_id)
+    items = [item for item in sorted(category.items, key=_sort_by_name) if _item_in_mode(item, mode)]
+    for child in sorted(children_by_parent.get(category.sbis_id, []), key=_sort_by_name):
+        items.extend(_collect_admin_items(child, children_by_parent, mode, visited.copy()))
+    return items
+
+
+def _serialize_admin_menu(mode):
+    """Same grouping as the public site for the given mode, but with hidden items
+    included and flagged, so the admin view matches what customers see."""
+    categories = Category.query.order_by(Category.sort_order, Category.name).all()
+    category_ids = {c.sbis_id for c in categories}
+    children_by_parent = {}
+    for c in categories:
+        if c.parent_sbis_id is not None:
+            children_by_parent.setdefault(c.parent_sbis_id, []).append(c)
+    parents = [c for c in categories if c.parent_sbis_id is None or c.parent_sbis_id not in category_ids]
+
+    data = []
+    for cat in sorted(parents, key=_sort_by_name):
+        items = _collect_admin_items(cat, children_by_parent, mode)
+        if not items:
+            continue
+        data.append({
+            'id': cat.sbis_id,
+            'name': cat.name,
+            'hidden': bool(cat.hidden),
+            'items': [
+                {'id': i.sbis_id, 'name': i.name, 'hidden': bool(i.hidden), 'price': float(i.price or 0)}
+                for i in items
+            ],
+        })
+    return data
+
+
 @api_bp.route('/admin/menu', methods=['GET'])
 def admin_menu_route():
     unauth = _require_admin()
@@ -187,25 +233,10 @@ def admin_menu_route():
     if db_unavailable:
         return db_unavailable
 
-    categories = Category.query.order_by(Category.sort_order, Category.name).all()
-    data = []
-    for cat in categories:
-        items = sorted(cat.items, key=_sort_by_name)
-        data.append({
-            'id': cat.sbis_id,
-            'name': cat.name,
-            'hidden': bool(cat.hidden),
-            'items': [
-                {
-                    'id': item.sbis_id,
-                    'name': item.name,
-                    'hidden': bool(item.hidden),
-                    'price': float(item.price or 0),
-                }
-                for item in items
-            ],
-        })
-    return jsonify({'categories': data})
+    mode = (request.args.get('mode') or 'restaurant').strip().lower()
+    if mode not in {'restaurant', 'delivery', 'family'}:
+        mode = 'restaurant'
+    return jsonify({'mode': mode, 'categories': _serialize_admin_menu(mode)})
 
 
 @api_bp.route('/admin/save', methods=['POST'])
