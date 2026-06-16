@@ -3,7 +3,7 @@ import os
 import click
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -180,13 +180,16 @@ def create_app():
     def delivery_page_legacy():
         return render_template('delivery.html')
 
+    # Страница «Большие порции» временно скрыта (idea на паузе).
+    # Чтобы вернуть — поменяй redirect обратно на render_template('family.html')
+    # и верни ссылки в навигацию шаблонов.
     @app.route('/family')
     def family_page():
-        return render_template('family.html')
+        return redirect(url_for('menu_page'))
 
     @app.route('/family.html')
     def family_page_legacy():
-        return render_template('family.html')
+        return redirect(url_for('menu_page'))
 
     @app.route('/order')
     def order_page():
