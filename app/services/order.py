@@ -487,6 +487,59 @@ def build_order_payload(payload, *, base_url=None):
     return _compact(order_payload)
 
 
+def _notify_order(order_payload):
+    """Best-effort Telegram notification to the orders chat(s) on a confirmed order.
+
+    Built from the authoritative order_payload (DB-priced composition, normalized
+    address). Sent as plain text so user-supplied fields can't break Markdown.
+    """
+    from app import send_telegram  # local import avoids a circular dependency
+
+    chat_id = os.getenv('TELEGRAM_ORDER_CHAT_ID') or os.getenv('TELEGRAM_CHAT_ID')
+    if not chat_id:
+        return
+
+    customer = order_payload.get('customer') or {}
+    delivery = order_payload.get('delivery') or {}
+    is_pickup = bool(delivery.get('isPickup'))
+    nomenclatures = order_payload.get('nomenclatures') or []
+
+    full_name = ' '.join(part for part in [customer.get('name'), customer.get('lastname')] if part)
+
+    lines = ['🥡 Новый заказ — САМОВЫВОЗ' if is_pickup else '🛵 Новый заказ — ДОСТАВКА']
+    lines.append(f'👤 {full_name or "—"}')
+    lines.append(f'📞 {customer.get("phone") or "—"}')
+    if customer.get('email'):
+        lines.append(f'✉️ {customer["email"]}')
+
+    if is_pickup:
+        lines.append(f'🕐 Заберёт к: {order_payload.get("datetime", "—")}')
+    else:
+        lines.append(f'📍 {delivery.get("addressFull") or "—"}')
+
+    items_total = 0.0
+    if nomenclatures:
+        lines.append('🧾 Состав:')
+        for nom in nomenclatures:
+            count = nom.get('count') or 1
+            cost = float(nom.get('cost') or 0)
+            items_total += cost * count
+            lines.append(f'• {nom.get("name")} × {count:g} — {cost * count:.0f} ₽')
+
+    delivery_cost = float(delivery.get('deliveryCost') or 0)
+    if not is_pickup and delivery_cost:
+        lines.append(f'🚗 Доставка: {delivery_cost:.0f} ₽')
+
+    total = items_total + (0 if is_pickup else delivery_cost)
+    lines.append(f'💰 Итого: {total:.0f} ₽')
+
+    comment = (order_payload.get('comment') or '').strip()
+    if comment:
+        lines.append(f'💬 {comment}')
+
+    send_telegram('\n'.join(lines), chat_id=chat_id, parse_mode=None)
+
+
 def create_order(payload, *, base_url=None):
     order_payload = build_order_payload(payload, base_url=base_url)
     logger.info(
@@ -530,5 +583,10 @@ def create_order(payload, *, base_url=None):
             details=response_data,
             status_code=502,
         )
+
+    try:
+        _notify_order(order_payload)
+    except Exception:
+        logger.warning("Order Telegram notification failed", exc_info=True)
 
     return response_data

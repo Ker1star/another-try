@@ -57,25 +57,36 @@ def _ensure_runtime_schema(connection=None):
         db.session.commit()
 
 
-def send_telegram(text):
-    """Send a message to the admin chat. Returns True on success."""
+def send_telegram(text, chat_id=None, parse_mode='Markdown'):
+    """Send a message to one or more Telegram chats.
+
+    chat_id may be a single id or a comma-separated list; defaults to
+    TELEGRAM_CHAT_ID. parse_mode=None sends plain text (robust against user
+    input with Markdown special characters). Returns True if all sends succeed.
+    """
     token = os.getenv('TELEGRAM_BOT_TOKEN')
-    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    chat_id = chat_id or os.getenv('TELEGRAM_CHAT_ID')
     if not token or not chat_id:
         return False
     proxy_url = os.getenv('TELEGRAM_PROXY')
     proxies = {'https': proxy_url, 'http': proxy_url} if proxy_url else None
-    try:
-        resp = requests.post(
-            f'https://api.telegram.org/bot{token}/sendMessage',
-            json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'},
-            timeout=10,
-            proxies=proxies,
-        )
-        resp.raise_for_status()
-        return True
-    except Exception:
-        return False
+    targets = [c.strip() for c in str(chat_id).split(',') if c.strip()]
+    ok = bool(targets)
+    for target in targets:
+        body = {'chat_id': target, 'text': text}
+        if parse_mode:
+            body['parse_mode'] = parse_mode
+        try:
+            resp = requests.post(
+                f'https://api.telegram.org/bot{token}/sendMessage',
+                json=body,
+                timeout=10,
+                proxies=proxies,
+            )
+            resp.raise_for_status()
+        except Exception:
+            ok = False
+    return ok
 
 
 def _resolve_database_url():
