@@ -20,8 +20,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+  <style>
+    /* Компактная центрированная раскладка под короткое меню бизнес-ланча (только /lunch) */
+    .lunch-page .menu-container { max-width: 1040px; margin-left: auto; margin-right: auto; }
+    .lunch-page .menu-grid {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+      justify-content: center;
+    }
+    .lunch-page .menu-section-head { text-align: center; }
+    .lunch-page .menu-nav ul { justify-content: center; }
+  </style>
 </head>
-<body class="delivery-page">
+<body class="delivery-page lunch-page">
   <div class="page-shell">
     <div class="mobile-backdrop"></div>
 
