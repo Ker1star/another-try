@@ -192,16 +192,22 @@ def create_app():
     def delivery_page_legacy():
         return render_template('delivery.html')
 
-    # Страница «Большие порции» временно скрыта (idea на паузе).
-    # Чтобы вернуть — поменяй redirect обратно на render_template('family.html')
-    # и верни ссылки в навигацию шаблонов.
+    @app.route('/lunch')
+    def lunch_page():
+        return render_template('lunch.html')
+
+    @app.route('/lunch.html')
+    def lunch_page_legacy():
+        return render_template('lunch.html')
+
+    # Слот «Большие порции» переиспользован под бизнес-ланч (mode=family внутри).
     @app.route('/family')
     def family_page():
-        return redirect(url_for('menu_page'))
+        return redirect(url_for('lunch_page'))
 
     @app.route('/family.html')
     def family_page_legacy():
-        return redirect(url_for('menu_page'))
+        return redirect(url_for('lunch_page'))
 
     @app.route('/order')
     def order_page():

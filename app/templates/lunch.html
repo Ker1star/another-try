@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Помощь домохозяйкам — Марта</title>
-  <meta name="description" content="Большие порции и блюда для большой семьи от ресторана Марта в Сыктывкаре: оформление и доставка онлайн.">
+  <title>Бизнес-ланч — Марта</title>
+  <meta name="description" content="Бизнес-ланч от ресторана Марта в Сыктывкаре: меню дня, доставка и самовывоз онлайн.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Помощь домохозяйкам — Марта">
-  <meta property="og:description" content="Большие порции и блюда для большой семьи от ресторана Марта в Сыктывкаре: оформление и доставка онлайн.">
+  <meta property="og:title" content="Бизнес-ланч — Марта">
+  <meta property="og:description" content="Бизнес-ланч от ресторана Марта в Сыктывкаре: меню дня, доставка и самовывоз онлайн.">
   <meta property="og:image" content="{{ request.url_root }}static/images/marta/DSC_0796.jpg">
   <meta property="og:url" content="{{ request.url }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}">
@@ -39,6 +39,7 @@
           <a href="{{ url_for('index') }}">Главная</a>
           <a href="{{ url_for('menu_page') }}">Меню</a>
           <a href="{{ url_for('delivery_page') }}">Доставка</a>
+          <a href="{{ url_for('lunch_page') }}">Бизнес-ланч</a>
           <a href="{{ url_for('about_page') }}">О нас</a>
           <a href="{{ url_for('index') }}#visit">Контакты</a>
         </nav>
@@ -62,6 +63,7 @@
         <a href="{{ url_for('index') }}">Главная</a>
         <a href="{{ url_for('menu_page') }}">Меню</a>
         <a href="{{ url_for('delivery_page') }}">Доставка</a>
+        <a href="{{ url_for('lunch_page') }}">Бизнес-ланч</a>
         <a href="{{ url_for('about_page') }}">О нас</a>
         <a href="{{ url_for('index') }}#visit">Контакты</a>
       </nav>
@@ -77,8 +79,8 @@
           <div class="page-card reveal">
             <div class="page-card-grid">
               <div class="page-copy">
-                <span class="eyebrow">Помощь домохозяйкам</span>
-                <h1 class="section-title">Большие порции для большой семьи.</h1>
+                <span class="eyebrow">Бизнес-ланч</span>
+                <h1 class="section-title">Меню бизнес-ланча.</h1>
               </div>
             </div>
           </div>

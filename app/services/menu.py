@@ -196,7 +196,9 @@ def upsert_menu(
         item.in_restaurant = sbis_id in restaurant_ids
         item.in_family = sbis_id in family_ids
         if delivery_ids is not None:
-            item.available_for_delivery = sbis_id in delivery_ids
+            # Lunch (in_family) positions are also orderable; they stay OFF the
+            # /delivery page thanks to the `not in_family` guard in _item_in_mode.
+            item.available_for_delivery = (sbis_id in delivery_ids) or (sbis_id in family_ids)
         elif sbis_id not in seen_item_ids:
             # Item is stale (no longer in any price list) — leave its flag alone.
             pass
