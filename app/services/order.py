@@ -31,6 +31,34 @@ YANDEX_GEOCODER_URL = os.getenv('YANDEX_GEOCODER_URL', 'https://geocode-maps.yan
 YANDEX_SUGGEST_KEY = os.getenv('YANDEX_SUGGEST_KEY')
 YANDEX_SUGGEST_URL = os.getenv('YANDEX_SUGGEST_URL', 'https://suggest-maps.yandex.ru/v1/suggest')
 ORDER_CITY = os.getenv('ORDER_CITY', 'Сыктывкар')
+LUNCH_HOURS_START = os.getenv('LUNCH_HOURS_START', '12:00')
+LUNCH_HOURS_END = os.getenv('LUNCH_HOURS_END', '18:00')
+
+
+def _parse_lunch_hhmm(raw, fallback):
+    raw = (raw or '').strip()
+    if not raw:
+        return fallback
+    hours, _, minutes = raw.partition(':')
+    try:
+        return (int(hours), int(minutes or 0))
+    except ValueError:
+        return fallback
+
+
+def is_lunch_available(now=None):
+    """Business lunch is orderable only on weekdays within the lunch window."""
+    now = now or _now_in_order_timezone()
+    if now.weekday() > 4:  # 5=Sat, 6=Sun
+        return False
+    start = _parse_lunch_hhmm(LUNCH_HOURS_START, (12, 0))
+    end = _parse_lunch_hhmm(LUNCH_HOURS_END, (18, 0))
+    current = (now.hour, now.minute)
+    return start <= current < end
+
+
+def lunch_window():
+    return {'available': is_lunch_available(), 'start': LUNCH_HOURS_START, 'end': LUNCH_HOURS_END}
 
 
 class PrestoOrderError(Exception):
@@ -399,6 +427,11 @@ def build_order_payload(payload, *, base_url=None):
     price_list_id = get_price_list_id()
     menu_map = _load_menu_items(raw_items)
     menu_map = _refresh_identifiers_if_needed(raw_items, menu_map, point_id, price_list_id)
+
+    # Business lunch (in_family) positions are orderable only within the lunch window.
+    has_lunch = any(getattr(menu_map.get(item.get('id')), 'in_family', False) for item in raw_items)
+    if has_lunch and not is_lunch_available():
+        raise ValueError('Бизнес-ланч можно заказать только по будням с 12:00 до 18:00.')
 
     customer_name = (payload.get('customerName') or '').strip()
     if not customer_name:

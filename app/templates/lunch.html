@@ -30,6 +30,8 @@
     .lunch-page .menu-section-head { text-align: center; }
     .lunch-page .menu-nav ul { justify-content: center; }
     .lunch-hours { margin-top: 10px; color: #b23b2e; font-weight: 600; font-size: .98rem; }
+    .lunch-hours.is-open { color: #1e7a3d; }
+    .lunch-hours.is-closed { color: #8a8a8a; }
   </style>
 </head>
 <body class="delivery-page lunch-page">
@@ -178,6 +180,19 @@
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
+  <script>
+    fetch('/api/lunch/status').then(function (r) { return r.json(); }).then(function (d) {
+      var note = document.querySelector('.lunch-hours');
+      if (!note) return;
+      if (d.available) {
+        note.textContent = 'Принимаем заказы сейчас · по будням с ' + d.start + ' до ' + d.end;
+        note.classList.add('is-open');
+      } else {
+        note.textContent = 'Сейчас недоступен · заказ по будням с ' + d.start + ' до ' + d.end;
+        note.classList.add('is-closed');
+      }
+    }).catch(function () {});
+  </script>
   <script>
     try {
       var _cart = JSON.parse(localStorage.getItem('cart') || '[]');

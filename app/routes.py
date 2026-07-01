@@ -20,6 +20,7 @@ from app.services.order import (
     calculate_order_total,
     create_order,
     geocode_quote,
+    lunch_window,
     suggest_address,
 )
 from app.services.payment import create_payment, handle_webhook
@@ -387,6 +388,11 @@ def sync_menu_task():
 @api_bp.route('/delivery/status', methods=['GET'])
 def delivery_status_route():
     return jsonify(get_delivery_status())
+
+
+@api_bp.route('/lunch/status', methods=['GET'])
+def lunch_status_route():
+    return jsonify(lunch_window())
 
 
 @api_bp.route('/pickup/slots', methods=['GET'])
