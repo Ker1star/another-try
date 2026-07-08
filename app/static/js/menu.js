@@ -146,10 +146,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         media.className = 'menu-item-media';
 
         const image = document.createElement('img');
-        image.src = dish.images?.length ? dish.images[0] : '/static/images/logo-heart.jpg';
+        const fallbackImage = '/imgx/images/logo.jpg?w=480';
+        image.src = dish.images?.length ? dish.images[0] : fallbackImage;
         image.alt = dish.name;
         image.loading = 'lazy';
-        image.onerror = () => { image.onerror = null; image.src = '/static/images/logo-heart.jpg'; };
+        image.onerror = () => { image.onerror = null; image.src = fallbackImage; };
         media.appendChild(image);
 
         const info = document.createElement('div');
@@ -317,6 +318,8 @@ function initCart() {
   const stickyCart = document.getElementById('stickyCart');
   const stickyCount = document.getElementById('stickyCartCount');
   const stickyTotal = document.getElementById('stickyCartTotal');
+  const minNote = document.getElementById('cartMinNote');
+  const minDeliveryTotal = Number(window.MARTA_MENU_CONFIG?.minDeliveryTotal) || 0;
 
   if (!list || !total || !checkout || !countBadge) {
     return;
@@ -411,6 +414,24 @@ function initCart() {
       row.append(copy, controls, actions);
       list.appendChild(row);
     });
+
+    if (minNote && minDeliveryTotal > 0) {
+      if (!state.length) {
+        minNote.hidden = true;
+      } else if (amount < minDeliveryTotal) {
+        const missing = minDeliveryTotal - amount;
+        minNote.hidden = false;
+        minNote.classList.remove('is-reached');
+        minNote.innerHTML =
+          `<div class="cart-min-copy">До минимальной суммы доставки не хватает <strong>${missing.toFixed(0)} ₽</strong></div>` +
+          `<div class="cart-min-bar"><span style="width:${Math.min(100, (amount / minDeliveryTotal) * 100).toFixed(0)}%"></span></div>` +
+          `<small>Доставка — от ${minDeliveryTotal} ₽. Для самовывоза минимальной суммы нет.</small>`;
+      } else {
+        minNote.hidden = false;
+        minNote.classList.add('is-reached');
+        minNote.innerHTML = '<div class="cart-min-copy">Минимальная сумма для доставки набрана ✓</div>';
+      }
+    }
 
     const totalCount = state.reduce((sum, item) => sum + (item.qty || 1), 0);
     total.textContent = `${amount.toFixed(0)} ₽`;

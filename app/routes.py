@@ -1,7 +1,8 @@
+import hashlib
 import json
 import os
 
-from flask import Blueprint, Response, abort, current_app, jsonify, request, session
+from flask import Blueprint, Response, abort, current_app, jsonify, request, send_file, session
 import requests
 
 from app import db
@@ -40,6 +41,8 @@ def _serialize_image_path(image_path):
         return []
     if image_path.startswith('http://') or image_path.startswith('https://') or image_path.startswith('/'):
         return [image_path]
+    if image_path.startswith('images/'):
+        return [f'/imgx/{image_path}?w=640']
     return [f'/static/{image_path}']
 
 
@@ -558,6 +561,15 @@ def proxy_image():
     if not params:
         abort(400, "Missing params")
 
+    width = max(100, min(request.args.get('w', default=640, type=int), 1600))
+    cache_dir = os.path.join(current_app.static_folder, '.imgcache', 'sbis')
+    cache_key = hashlib.sha1(params.encode('utf-8')).hexdigest()
+    cache_path = os.path.join(cache_dir, f'{cache_key}_{width}.webp')
+
+    if os.path.isfile(cache_path):
+        return send_file(cache_path, mimetype='image/webp',
+                         max_age=86400 * 30, conditional=True)
+
     token = fetch_token()
     sbis_url = "https://api.sbis.ru/retail/img"
     sbis_resp = requests.get(
@@ -567,9 +579,31 @@ def proxy_image():
         stream=True,
         timeout=30,
     )
+    body = sbis_resp.raw.read()
+
+    if sbis_resp.status_code == 200 and body:
+        try:
+            from io import BytesIO
+
+            from PIL import Image
+
+            os.makedirs(cache_dir, exist_ok=True)
+            with Image.open(BytesIO(body)) as img:
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                if img.width > width:
+                    img = img.resize(
+                        (width, round(img.height * width / img.width)),
+                        Image.LANCZOS,
+                    )
+                img.save(cache_path, 'WEBP', quality=82, method=4)
+            return send_file(cache_path, mimetype='image/webp',
+                             max_age=86400 * 30, conditional=True)
+        except Exception as exc:
+            current_app.logger.error('sbis img resize failed: %s', exc)
 
     response = Response(
-        sbis_resp.raw.read(),
+        body,
         status=sbis_resp.status_code,
         content_type=sbis_resp.headers.get('Content-Type', 'image/jpeg')
     )
