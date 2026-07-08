@@ -11,5 +11,6 @@ public/
 app/static/.imgcache/
 app/static/images/*.txt
 app/static/images/*.csv
+app/static/images/*.exe
 chat_log.txt
 dump_chat.py

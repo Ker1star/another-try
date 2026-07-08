@@ -4,10 +4,11 @@ import os
 import click
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, jsonify, redirect, render_template, request, session, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -148,6 +149,9 @@ def create_app():
         static_url_path='/static',
         template_folder=os.path.join(os.path.dirname(__file__), 'templates')
     )
+    # За nginx на VDS: доверяем X-Forwarded-Proto/Host, чтобы request.url_root
+    # и canonical/og-ссылки были https, а не http.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY') or os.getenv('SECRET_KEY') or 'dev-secret-key'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -182,7 +186,7 @@ def create_app():
 
     @app.route('/menu.html')
     def menu_page_legacy():
-        return render_template('menu.html')
+        return redirect(url_for('menu_page'), code=301)
 
     @app.route('/delivery')
     def delivery_page():
@@ -190,7 +194,7 @@ def create_app():
 
     @app.route('/delivery.html')
     def delivery_page_legacy():
-        return render_template('delivery.html')
+        return redirect(url_for('delivery_page'), code=301)
 
     @app.route('/lunch')
     def lunch_page():
@@ -198,16 +202,16 @@ def create_app():
 
     @app.route('/lunch.html')
     def lunch_page_legacy():
-        return render_template('lunch.html')
+        return redirect(url_for('lunch_page'), code=301)
 
     # Слот «Большие порции» переиспользован под бизнес-ланч (mode=family внутри).
     @app.route('/family')
     def family_page():
-        return redirect(url_for('lunch_page'))
+        return redirect(url_for('lunch_page'), code=301)
 
     @app.route('/family.html')
     def family_page_legacy():
-        return redirect(url_for('lunch_page'))
+        return redirect(url_for('lunch_page'), code=301)
 
     @app.route('/order')
     def order_page():
@@ -242,6 +246,41 @@ def create_app():
     @app.route('/privacy')
     def privacy_page():
         return render_template('privacy.html')
+
+    @app.route('/robots.txt')
+    def robots_txt():
+        base = request.url_root.rstrip('/')
+        lines = [
+            'User-agent: *',
+            'Disallow: /admin',
+            'Disallow: /order',
+            'Disallow: /api/',
+            'Allow: /api/img',
+            '',
+            f'Sitemap: {base}/sitemap.xml',
+        ]
+        return Response('\n'.join(lines) + '\n', mimetype='text/plain')
+
+    @app.route('/sitemap.xml')
+    def sitemap_xml():
+        base = request.url_root.rstrip('/')
+        pages = [
+            ('/', '1.0'),
+            ('/menu', '0.9'),
+            ('/delivery', '0.9'),
+            ('/lunch', '0.8'),
+            ('/about', '0.6'),
+        ]
+        urls = ''.join(
+            f'<url><loc>{base}{path}</loc><priority>{priority}</priority></url>'
+            for path, priority in pages
+        )
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f'{urls}</urlset>'
+        )
+        return Response(xml, mimetype='application/xml')
 
     @app.route('/imgx/<path:filename>')
     def imgx(filename):
