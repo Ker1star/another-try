@@ -40,6 +40,7 @@ RELAY_URL = os.getenv('MAX_RELAY_URL', 'https://example.com/api/relay/max')
 RELAY_SECRET = os.getenv('MAX_RELAY_SECRET', '')
 APP_FILTER = os.getenv('MAX_APP_FILTER', 'max')  # подстрока имени приложения, без регистра
 POLL_SECONDS = 3
+HEARTBEAT_SECONDS = 300  # «я жив» серверу; сторожевой таймер алертит при молчании
 
 
 def _notification_texts(notification):
@@ -62,19 +63,27 @@ def _app_name(notification):
         return ''
 
 
-def _send(title, text):
+def _post(payload, label):
     try:
         response = requests.post(
             RELAY_URL,
-            json={'title': title, 'text': text},
+            json=payload,
             headers={'Authorization': f'Bearer {RELAY_SECRET}'},
             timeout=15,
         )
-        print(time.strftime('%H:%M:%S'), '->', response.status_code, title)
+        print(time.strftime('%H:%M:%S'), '->', response.status_code, label)
         return response.ok
     except Exception as exc:
-        print(time.strftime('%H:%M:%S'), 'send failed:', exc)
+        print(time.strftime('%H:%M:%S'), f'{label} failed:', exc)
         return False
+
+
+def _send(title, text):
+    return _post({'title': title, 'text': text}, title or 'сообщение')
+
+
+def _heartbeat():
+    return _post({'heartbeat': True}, 'heartbeat')
 
 
 async def main():
@@ -88,9 +97,13 @@ async def main():
 
     seen = set()
     first_pass = True  # не пересылать то, что висело в центре до запуска
+    last_heartbeat = 0.0
 
     print(f'Слежу за уведомлениями «{APP_FILTER}» → {RELAY_URL}')
     while True:
+        if time.time() - last_heartbeat >= HEARTBEAT_SECONDS:
+            _heartbeat()
+            last_heartbeat = time.time()
         try:
             notifications = await listener.get_notifications_async(NotificationKinds.TOAST)
             for notification in notifications:

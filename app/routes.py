@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import time
 
 from flask import Blueprint, Response, abort, current_app, jsonify, request, send_file, session
 import requests
@@ -556,6 +557,11 @@ def max_relay_route():
         return jsonify({'error': 'Unauthorized'}), 401
 
     payload = request.get_json(silent=True) or {}
+    _touch_relay_heartbeat()  # любой контакт с компа = комп жив
+
+    if payload.get('heartbeat'):
+        return jsonify({'ok': True})
+
     title = (payload.get('title') or '').strip()
     text = (payload.get('text') or '').strip()
     if not title and not text:
@@ -567,6 +573,71 @@ def max_relay_route():
     chat_id = os.getenv('MAX_RELAY_CHAT_ID')  # ТГ получателя; без него — TELEGRAM_CHAT_ID
     ok = send_telegram(message, chat_id=chat_id, parse_mode=None)
     return jsonify({'ok': ok}), 200 if ok else 502
+
+
+def _relay_state_path():
+    return os.path.join(current_app.instance_path, 'max_relay_heartbeat.json')
+
+
+def _touch_relay_heartbeat():
+    try:
+        state = _read_relay_state()
+        state['ts'] = time.time()
+        os.makedirs(current_app.instance_path, exist_ok=True)
+        with open(_relay_state_path(), 'w', encoding='utf-8') as handle:
+            json.dump(state, handle)
+    except Exception:
+        current_app.logger.exception('relay heartbeat write failed')
+
+
+def _read_relay_state():
+    try:
+        with open(_relay_state_path(), encoding='utf-8') as handle:
+            return json.load(handle)
+    except Exception:
+        return {}
+
+
+@api_bp.route('/tasks/relay-watchdog', methods=['GET'])
+def relay_watchdog_task():
+    """Крон-проверка: если комп с реле MAX молчит дольше порога — алерт в ТГ.
+
+    crontab на VDS: */10 * * * * curl -s -H "Authorization: Bearer $CRON_SECRET" \
+        https://ДОМЕН/api/tasks/relay-watchdog
+    """
+    if not _authorize_internal_task():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    state = _read_relay_state()
+    if not state.get('ts'):
+        # Реле ещё ни разу не выходило на связь — нечего сторожить.
+        return jsonify({'status': 'no-heartbeat-yet'})
+
+    from app import send_telegram
+
+    timeout_minutes = int(os.getenv('MAX_RELAY_TIMEOUT_MIN', '15'))
+    silence_minutes = (time.time() - state['ts']) / 60
+    alerted = bool(state.get('alerted'))
+
+    if silence_minutes > timeout_minutes and not alerted:
+        send_telegram(
+            f'🔌 Реле MAX молчит {silence_minutes:.0f} мин — проверь дежурный комп '
+            '(питание, Edge, скрипт). Уведомления из MAX сейчас НЕ пересылаются!',
+            parse_mode=None,
+        )
+        state['alerted'] = True
+    elif silence_minutes <= timeout_minutes and alerted:
+        send_telegram('✅ Реле MAX снова на связи.', parse_mode=None)
+        state['alerted'] = False
+    else:
+        return jsonify({'status': 'ok', 'silenceMinutes': round(silence_minutes, 1), 'alerted': alerted})
+
+    try:
+        with open(_relay_state_path(), 'w', encoding='utf-8') as handle:
+            json.dump(state, handle)
+    except Exception:
+        current_app.logger.exception('relay watchdog state write failed')
+    return jsonify({'status': 'ok', 'silenceMinutes': round(silence_minutes, 1), 'alerted': state['alerted']})
 
 
 @api_bp.route('/health', methods=['GET'])
