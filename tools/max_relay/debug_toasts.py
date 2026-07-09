@@ -10,7 +10,7 @@
 
 import asyncio
 
-from winsdk.windows.ui.notifications import KnownNotificationBindings, NotificationKinds
+from winsdk.windows.ui.notifications import NotificationKinds
 from winsdk.windows.ui.notifications.management import (
     UserNotificationListener,
     UserNotificationListenerAccessStatus,
@@ -37,15 +37,14 @@ async def main():
             except Exception:
                 pass
             texts = []
+            templates = []
             try:
-                binding = n.notification.visual.get_binding(
-                    KnownNotificationBindings.get_toast_generic()
-                )
-                if binding:
-                    texts = [t.text for t in binding.get_text_elements()]
-            except Exception:
-                pass
-            print(f'[{app!r}] {texts}')
+                for binding in n.notification.visual.bindings:
+                    templates.append(binding.template)
+                    texts.extend(t.text for t in binding.get_text_elements())
+            except Exception as exc:
+                texts.append(f'<ошибка извлечения: {exc}>')
+            print(f'[{app!r}] шаблоны={templates} тексты={texts}')
         await asyncio.sleep(2)
 
 

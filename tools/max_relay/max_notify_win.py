@@ -30,7 +30,7 @@ import sys
 import time
 
 import requests
-from winsdk.windows.ui.notifications import KnownNotificationBindings, NotificationKinds
+from winsdk.windows.ui.notifications import NotificationKinds
 from winsdk.windows.ui.notifications.management import (
     UserNotificationListener,
     UserNotificationListenerAccessStatus,
@@ -43,17 +43,16 @@ POLL_SECONDS = 3
 
 
 def _notification_texts(notification):
-    """Заголовок и текст тоста; у MAX это «отправитель» и «сообщение»."""
+    """Заголовок и текст тоста; перебираем все биндинги — шаблон у веб-
+    уведомлений Edge не обязательно ToastGeneric."""
+    texts = []
     try:
-        binding = notification.notification.visual.get_binding(
-            KnownNotificationBindings.get_toast_generic()
-        )
-        if binding is None:
-            return '', ''
-        texts = [t.text for t in binding.get_text_elements()]
-        return (texts[0] if texts else ''), '\n'.join(texts[1:])
+        for binding in notification.notification.visual.bindings:
+            texts.extend(t.text for t in binding.get_text_elements())
     except Exception:
-        return '', ''
+        pass
+    texts = [t for t in texts if t and t.strip()]
+    return (texts[0] if texts else ''), '\n'.join(texts[1:])
 
 
 def _app_name(notification):
