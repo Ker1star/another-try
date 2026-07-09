@@ -53,7 +53,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('menuSkeleton')?.remove();
   };
 
-  renderSkeleton();
+  // Серверный рендер меню для ботов и мгновенного показа: если он есть,
+  // скелетон не нужен; после успешной загрузки заменяем живой версией.
+  const ssrMenu = document.getElementById('ssrMenu');
+  if (!ssrMenu) {
+    renderSkeleton();
+  }
 
   try {
     const response = await fetch(menuApiUrl);
@@ -63,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const { data: items } = await response.json();
     removeSkeleton();
+    ssrMenu?.remove();
     const categories = items.filter(item => item.isParent && item.hierarchicalParent === null);
     const dishes = items.filter(item => !item.isParent);
 
@@ -289,6 +295,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Ошибка при загрузке меню:', error);
     removeSkeleton();
+    if (ssrMenu) {
+      // Серверная версия меню уже на экране — оставляем её вместо ошибки.
+      if (interactiveMode) {
+        initCart();
+      }
+      return;
+    }
     const message = menuMode === 'delivery'
       ? 'Не удалось загрузить меню доставки.'
       : 'Не удалось загрузить меню ресторана.';

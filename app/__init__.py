@@ -1,4 +1,5 @@
 import hmac
+import json
 import os
 
 import click
@@ -180,9 +181,79 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(presto_bp, url_prefix='/api')
 
+    def _menu_ssr_context(mode, page_title):
+        """Server-rendered menu + Schema.org Menu JSON-LD.
+
+        AI-краулеры (GPTBot, PerplexityBot и т.п.) не исполняют JS и видят
+        пустой контейнер — отдаём меню статикой; menu.js заменит её живой
+        версией с корзиной. При недоступной БД страница работает как раньше.
+        """
+        if not app.config.get('DATABASE_AVAILABLE'):
+            return {'ssr_menu': None, 'menu_jsonld': None}
+        try:
+            from app.routes import _serialize_menu
+            flat = _serialize_menu(mode)
+        except Exception:
+            app.logger.exception('SSR menu failed for mode=%s', mode)
+            return {'ssr_menu': None, 'menu_jsonld': None}
+
+        categories = []
+        by_id = {}
+        # (пустое меню → без SSR-блока и без пустой JSON-LD разметки)
+        for entry in flat:
+            if entry.get('isParent'):
+                cat = {'name': entry['name'], 'items': []}
+                categories.append(cat)
+                by_id[entry['hierarchicalId']] = cat
+            else:
+                cat = by_id.get(entry.get('hierarchicalParent'))
+                if cat is None:
+                    continue
+                cat['items'].append({
+                    'name': entry['name'],
+                    'description': (entry.get('description_simple') or '').strip(),
+                    'price': int(entry.get('price') or 0),
+                    'weight': (str(entry['attributes']['outQuantity']).strip()
+                               if entry.get('attributes', {}).get('outQuantity') not in (None, '') else ''),
+                })
+
+        if not categories:
+            return {'ssr_menu': None, 'menu_jsonld': None}
+
+        jsonld = {
+            '@context': 'https://schema.org',
+            '@type': 'Menu',
+            'name': page_title,
+            'inLanguage': 'ru',
+            'hasMenuSection': [
+                {
+                    '@type': 'MenuSection',
+                    'name': cat['name'],
+                    'hasMenuItem': [
+                        {
+                            '@type': 'MenuItem',
+                            'name': item['name'],
+                            **({'description': item['description']} if item['description'] else {}),
+                            'offers': {
+                                '@type': 'Offer',
+                                'price': str(item['price']),
+                                'priceCurrency': 'RUB',
+                            },
+                        }
+                        for item in cat['items']
+                    ],
+                }
+                for cat in categories
+            ],
+        }
+        return {
+            'ssr_menu': categories,
+            'menu_jsonld': json.dumps(jsonld, ensure_ascii=False),
+        }
+
     @app.route('/menu')
     def menu_page():
-        return render_template('menu.html')
+        return render_template('menu.html', **_menu_ssr_context('restaurant', 'Меню ресторана Марта'))
 
     @app.route('/menu.html')
     def menu_page_legacy():
@@ -190,7 +261,7 @@ def create_app():
 
     @app.route('/delivery')
     def delivery_page():
-        return render_template('delivery.html')
+        return render_template('delivery.html', **_menu_ssr_context('delivery', 'Меню доставки Марта'))
 
     @app.route('/delivery.html')
     def delivery_page_legacy():
@@ -198,7 +269,7 @@ def create_app():
 
     @app.route('/lunch')
     def lunch_page():
-        return render_template('lunch.html')
+        return render_template('lunch.html', **_menu_ssr_context('family', 'Бизнес-ланч Марта'))
 
     @app.route('/lunch.html')
     def lunch_page_legacy():
@@ -257,9 +328,56 @@ def create_app():
             'Disallow: /api/',
             'Allow: /api/img',
             '',
+            # Явно приветствуем ИИ-краулеры (контент и так открыт, это сигнал).
+            'User-agent: GPTBot',
+            'User-agent: OAI-SearchBot',
+            'User-agent: ChatGPT-User',
+            'User-agent: ClaudeBot',
+            'User-agent: Claude-User',
+            'User-agent: PerplexityBot',
+            'User-agent: Perplexity-User',
+            'User-agent: Google-Extended',
+            'User-agent: YandexAdditional',
+            'Disallow: /admin',
+            'Disallow: /order',
+            'Allow: /',
+            '',
             f'Sitemap: {base}/sitemap.xml',
         ]
         return Response('\n'.join(lines) + '\n', mimetype='text/plain')
+
+    @app.route('/llms.txt')
+    def llms_txt():
+        base = request.url_root.rstrip('/')
+        text = f"""# Марта — ресторан и доставка в Сыктывкаре
+
+> Городской ресторан и банкет-холл с собственным заготовочным цехом, работает с 2009 года.
+> Кухня: европейская, немецко-чешские колбаски собственного производства, пицца, паста, супы в хлебе.
+
+## Ключевые факты
+
+- Адрес: Сыктывкар, Сысольское шоссе, 1
+- Телефон: +7 (8212) 29-12-47
+- Часы работы: пн–чт и вс 12:00–22:00, пт–сб 12:00–23:00
+- Доставка по Сыктывкару: минимальный заказ от 800 ₽, заказ онлайн на сайте
+- Самовывоз: доступен в рабочие часы
+- Бизнес-ланч: по будням с 12:00 до 18:00
+- Бронирование стола: по телефону или через форму на главной странице
+- Оплата онлайн: ЮKassa (банковские карты)
+
+## Страницы
+
+- [Меню ресторана]({base}/menu): актуальные блюда с ценами
+- [Меню доставки]({base}/delivery): блюда, доступные к доставке, корзина и заказ онлайн
+- [Бизнес-ланч]({base}/lunch): обеденное меню по будням
+- [О ресторане]({base}/about): история с 2009 года, собственный мясной цех
+- [Доставка и заказ]({base}/delivery)
+
+## Соцсети
+
+- ВКонтакте: https://vk.com/fraumartasyk
+"""
+        return Response(text, mimetype='text/plain; charset=utf-8')
 
     @app.route('/sitemap.xml')
     def sitemap_xml():

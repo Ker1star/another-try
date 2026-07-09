@@ -95,7 +95,32 @@
           <ul id="catTabs"></ul>
         </nav>
 
-        <div id="menuContainer" class="menu-container"></div>
+        <div id="menuContainer" class="menu-container">
+          {% if ssr_menu %}
+          <div id="ssrMenu">
+            {% for cat in ssr_menu %}
+            <section class="menu-section">
+              <h2 class="menu-category">{{ cat.name }}</h2>
+              <div class="menu-grid">
+                {% for item in cat['items'] %}
+                <article class="menu-item">
+                  <div class="info">
+                    <h3>{{ item.name }}</h3>
+                    {% if item.description %}<p class="description">{{ item.description }}</p>{% endif %}
+                    <div class="menu-meta">
+                      {% if item.weight %}<span class="weight">{{ item.weight }} г</span>{% endif %}
+                      <span class="price">{{ item.price }} ₽</span>
+                    </div>
+                  </div>
+                </article>
+                {% endfor %}
+              </div>
+            </section>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% if menu_jsonld %}<script type="application/ld+json">{{ menu_jsonld | safe }}</script>{% endif %}
       </section>
     </main>
 

@@ -100,9 +100,71 @@
           <ul id="catTabs"></ul>
         </nav>
 
-        <div id="menuContainer" class="menu-container"></div>
+        <div id="menuContainer" class="menu-container">
+          {% if ssr_menu %}
+          <div id="ssrMenu">
+            {% for cat in ssr_menu %}
+            <section class="menu-section">
+              <h2 class="menu-category">{{ cat.name }}</h2>
+              <div class="menu-grid">
+                {% for item in cat['items'] %}
+                <article class="menu-item">
+                  <div class="info">
+                    <h3>{{ item.name }}</h3>
+                    {% if item.description %}<p class="description">{{ item.description }}</p>{% endif %}
+                    <div class="menu-meta">
+                      {% if item.weight %}<span class="weight">{{ item.weight }} г</span>{% endif %}
+                      <span class="price">{{ item.price }} ₽</span>
+                    </div>
+                  </div>
+                </article>
+                {% endfor %}
+              </div>
+            </section>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% if menu_jsonld %}<script type="application/ld+json">{{ menu_jsonld | safe }}</script>{% endif %}
       </section>
+      <section class="container" id="faq" style="margin-top:32px;max-width:760px">
+        <h2 class="menu-category">Частые вопросы</h2>
+        <details style="padding:10px 0;border-bottom:1px solid rgba(66,47,34,.1)">
+          <summary style="cursor:pointer;font-weight:600">Какая минимальная сумма заказа на доставку?</summary>
+          <p style="margin:8px 0 0;color:#6b6b6b">Минимальный заказ на доставку — от 800 ₽, в отдалённых районах — от 1000 ₽. Для самовывоза минимальной суммы нет.</p>
+        </details>
+        <details style="padding:10px 0;border-bottom:1px solid rgba(66,47,34,.1)">
+          <summary style="cursor:pointer;font-weight:600">В какие часы принимаются заказы?</summary>
+          <p style="margin:8px 0 0;color:#6b6b6b">В рабочие часы ресторана: понедельник–четверг и воскресенье с 12:00 до 22:00, пятница–суббота с 12:00 до 23:00.</p>
+        </details>
+        <details style="padding:10px 0;border-bottom:1px solid rgba(66,47,34,.1)">
+          <summary style="cursor:pointer;font-weight:600">Есть ли самовывоз?</summary>
+          <p style="margin:8px 0 0;color:#6b6b6b">Да, при оформлении заказа выберите «Самовывоз» и удобное время. Адрес: Сыктывкар, Сысольское шоссе, 1.</p>
+        </details>
+        <details style="padding:10px 0;border-bottom:1px solid rgba(66,47,34,.1)">
+          <summary style="cursor:pointer;font-weight:600">Как оплатить заказ?</summary>
+          <p style="margin:8px 0 0;color:#6b6b6b">Онлайн банковской картой при оформлении заказа. Чек придёт на указанную электронную почту.</p>
+        </details>
+        <details style="padding:10px 0">
+          <summary style="cursor:pointer;font-weight:600">Есть ли бизнес-ланч?</summary>
+          <p style="margin:8px 0 0;color:#6b6b6b">Да, по будням с 12:00 до 18:00 — <a href="{{ url_for('lunch_page') }}">отдельное меню бизнес-ланча</a> с доставкой и самовывозом.</p>
+        </details>
+      </section>
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {"@type": "Question", "name": "Какая минимальная сумма заказа на доставку в ресторане Марта?", "acceptedAnswer": {"@type": "Answer", "text": "Минимальный заказ на доставку — от 800 ₽, в отдалённых районах Сыктывкара — от 1000 ₽. Для самовывоза минимальной суммы нет."}},
+          {"@type": "Question", "name": "В какие часы ресторан Марта принимает заказы на доставку?", "acceptedAnswer": {"@type": "Answer", "text": "Понедельник–четверг и воскресенье с 12:00 до 22:00, пятница–суббота с 12:00 до 23:00."}},
+          {"@type": "Question", "name": "Есть ли самовывоз из ресторана Марта?", "acceptedAnswer": {"@type": "Answer", "text": "Да, при оформлении заказа на сайте можно выбрать самовывоз и удобное время. Адрес: Сыктывкар, Сысольское шоссе, 1."}},
+          {"@type": "Question", "name": "Как оплатить заказ доставки из ресторана Марта?", "acceptedAnswer": {"@type": "Answer", "text": "Онлайн банковской картой при оформлении заказа на сайте."}},
+          {"@type": "Question", "name": "Есть ли в ресторане Марта бизнес-ланч?", "acceptedAnswer": {"@type": "Answer", "text": "Да, бизнес-ланч по будням с 12:00 до 18:00, доступны доставка и самовывоз."}}
+        ]
+      }
+      </script>
     </main>
+
 
     <button id="stickyCart" class="sticky-cart" type="button" hidden aria-label="Открыть корзину">
       <span class="sticky-cart-left">
