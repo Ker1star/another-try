@@ -543,6 +543,32 @@ def payment_status_route(tracking_id):
     return jsonify(response)
 
 
+@api_bp.route('/relay/max', methods=['POST'])
+def max_relay_route():
+    """Приём уведомлений MAX с офисного ПК и пересылка в Telegram.
+
+    Комп без VPN не достучится до api.telegram.org напрямую, поэтому шлёт
+    сюда обычным HTTPS, а сервер отправляет через send_telegram (с прокси).
+    """
+    secret = os.getenv('NOTIFY_RELAY_SECRET')
+    auth = request.headers.get('Authorization', '')
+    if not secret or auth != f'Bearer {secret}':
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    payload = request.get_json(silent=True) or {}
+    title = (payload.get('title') or '').strip()
+    text = (payload.get('text') or '').strip()
+    if not title and not text:
+        return jsonify({'error': 'empty'}), 400
+
+    from app import send_telegram
+
+    message = f'📨 MAX — {title}\n{text}'.strip()[:4000]
+    chat_id = os.getenv('MAX_RELAY_CHAT_ID')  # ТГ получателя; без него — TELEGRAM_CHAT_ID
+    ok = send_telegram(message, chat_id=chat_id, parse_mode=None)
+    return jsonify({'ok': ok}), 200 if ok else 502
+
+
 @api_bp.route('/health', methods=['GET'])
 def health_route():
     database_available = current_app.config.get('DATABASE_AVAILABLE')
