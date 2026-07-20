@@ -35,9 +35,7 @@
     }
     .lunch-page .menu-section-head { text-align: center; }
     .lunch-page .menu-nav ul { justify-content: center; }
-    .lunch-hours { margin-top: 10px; color: #b23b2e; font-weight: 600; font-size: .98rem; }
-    .lunch-hours.is-open { color: #1e7a3d; }
-    .lunch-hours.is-closed { color: #8a8a8a; }
+    .lunch-hours { margin-top: 10px; color: #6b6b6b; font-weight: 600; font-size: .98rem; }
   </style>
 </head>
 <body class="delivery-page lunch-page">
@@ -100,7 +98,7 @@
               <div class="page-copy">
                 <span class="eyebrow">Бизнес-ланч</span>
                 <h1 class="section-title">Меню бизнес-ланча.</h1>
-                <p class="lunch-hours">Действует по будням с 12:00 до 18:00.</p>
+                <p class="lunch-hours">Бизнес-ланч подаётся по будням с 12:00 до 18:00.</p>
               </div>
             </div>
           </div>
@@ -207,25 +205,13 @@
       apiUrl: "{{ url_for('api.menu_route') }}?mode=family",
       mode: "family",
       interactive: true,
+      allowAddToCart: false,
       orderPageUrl: "{{ url_for('order_page') }}",
       minDeliveryTotal: 800
     };
   </script>
   <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
-  <script>
-    fetch('/api/lunch/status').then(function (r) { return r.json(); }).then(function (d) {
-      var note = document.querySelector('.lunch-hours');
-      if (!note) return;
-      if (d.available) {
-        note.textContent = 'Принимаем заказы сейчас · по будням с ' + d.start + ' до ' + d.end;
-        note.classList.add('is-open');
-      } else {
-        note.textContent = 'Сейчас недоступен · заказ по будням с ' + d.start + ' до ' + d.end;
-        note.classList.add('is-closed');
-      }
-    }).catch(function () {});
-  </script>
   <script>
     try {
       var _cart = JSON.parse(localStorage.getItem('cart') || '[]');

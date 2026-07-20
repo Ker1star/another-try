@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const NAV_OFFSET = 128;
   const menuConfig = window.MARTA_MENU_CONFIG || {};
   const interactiveMode = menuConfig.interactive === true;
+  const allowAddToCart = menuConfig.allowAddToCart !== false;
   const menuMode = menuConfig.mode || 'restaurant';
   const menuApiUrl = menuConfig.apiUrl || '/api/menu';
 
@@ -199,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         meta.appendChild(price);
         info.appendChild(meta);
 
-        if (interactiveMode) {
+        if (interactiveMode && allowAddToCart) {
           const action = document.createElement('button');
           action.type = 'button';
           action.className = 'button btn-add';
