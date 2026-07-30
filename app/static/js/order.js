@@ -189,12 +189,42 @@ document.addEventListener('DOMContentLoaded', () => {
     phoneInput.value = phoneInput.value.replace(/[^0-9+()\-\s]/g, '').slice(0, 22);
   });
 
-  // Handle return from YooKassa payment page
-  const params = new URLSearchParams(window.location.search);
-  const paymentStatus = params.get('payment');
-  const trackingId = params.get('id');
+  // --- Persisted order status (localStorage, no auth needed) ---
+  // Lets a customer who closed the tab mid-payment (or right after) come back
+  // to /order later and still see what happened to their last order.
+  const ORDER_TRACKING_KEY = 'marta_last_order';
+  const ORDER_TRACKING_PENDING_RESUME_MS = 5 * 60 * 1000; // still-pending order: auto-resume polling
+  const ORDER_TRACKING_RESOLVED_SHOW_MS = 10 * 60 * 1000; // already-resolved order: show once more
 
-  if (paymentStatus === 'success' || paymentStatus === 'error') {
+  const saveOrderTracking = (data) => {
+    try { localStorage.setItem(ORDER_TRACKING_KEY, JSON.stringify(data)); } catch (e) {}
+  };
+  const loadOrderTracking = () => {
+    try { return JSON.parse(localStorage.getItem(ORDER_TRACKING_KEY) || 'null'); } catch (e) { return null; }
+  };
+  const clearOrderTracking = () => {
+    try { localStorage.removeItem(ORDER_TRACKING_KEY); } catch (e) {}
+  };
+
+  const PHONE_HTML = '<a href="tel:+78212291247">+7 (8212) 29-12-47</a>';
+  const ACTIONS_DEFAULT = '<a href="/" class="button">На главную</a><a href="/menu" class="button-secondary">Посмотреть меню</a>';
+
+  const successState = (orderNumber) => ({
+    icon: '✓',
+    title: orderNumber ? `Заказ №${orderNumber} принят` : 'Заказ принят',
+    text: 'Заказ передан в систему ресторана. Чек придёт на электронную почту.',
+  });
+  const failedState = () => ({
+    cls: 'payment-result--warning',
+    icon: '!',
+    title: 'Не удалось передать заказ',
+    text: `Оплата прошла, но мы не смогли передать заказ в систему ресторана. Позвоните: ${PHONE_HTML} — примем заказ вручную и сразу подтвердим.`,
+    actions: `<a href="tel:+78212291247" class="button">Позвонить</a><a href="/" class="button-secondary">На главную</a>`,
+  });
+
+  // Shows the payment-result section and, unless an immediate status is given,
+  // polls /api/payments/{id}/status until it resolves (or times out).
+  const runPaymentStatusFlow = (trackingId, { immediateStatus, immediateOrderNumber } = {}) => {
     const heroSection = document.querySelector('.page-hero');
     const formSection = document.getElementById('orderFormSection');
     const resultSection = document.getElementById('paymentResult');
@@ -203,17 +233,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const textEl = resultSection?.querySelector('[data-result-text]');
     const actionsEl = resultSection?.querySelector('.payment-result-actions');
 
-    if (paymentStatus === 'success') {
-      localStorage.removeItem('cart');
-    }
-
     if (heroSection) heroSection.hidden = true;
     if (formSection) formSection.hidden = true;
     if (resultSection) resultSection.hidden = false;
     window.scrollTo({ top: 0, behavior: 'auto' });
-
-    const PHONE_HTML = '<a href="tel:+78212291247">+7 (8212) 29-12-47</a>';
-    const ACTIONS_DEFAULT = '<a href="/" class="button">На главную</a><a href="/menu" class="button-secondary">Посмотреть меню</a>';
 
     const setState = (state) => {
       if (!resultSection) return;
@@ -225,21 +248,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (actionsEl) actionsEl.innerHTML = state.actions ?? ACTIONS_DEFAULT;
     };
 
-    if (paymentStatus === 'error') {
+    if (immediateStatus === 'paid') {
+      setState(successState(immediateOrderNumber));
+      return;
+    }
+    if (immediateStatus === 'failed') {
+      setState(failedState());
+      return;
+    }
+    if (immediateStatus === 'error') {
       setState({
         cls: 'payment-result--error',
         icon: '!',
         title: 'Оплата не прошла',
         text: `Платёж не был завершён. Деньги не списались. Попробуйте ещё раз или позвоните: ${PHONE_HTML}`,
-      });
-      return;
-    }
-
-    if (!trackingId) {
-      setState({
-        icon: '✓',
-        title: 'Заказ принят',
-        text: 'Заказ передан в систему ресторана. Чек придёт на электронную почту.',
       });
       return;
     }
@@ -266,22 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.ok) {
           const data = await resp.json();
           if (data.status === 'paid') {
-            setState({
-              icon: '✓',
-              title: 'Заказ принят',
-              text: 'Заказ передан в систему ресторана. Чек придёт на электронную почту.',
-            });
+            saveOrderTracking({ trackingId, status: 'paid', orderNumber: data.orderNumber, resolvedAt: Date.now() });
+            setState(successState(data.orderNumber));
             stop();
             return;
           }
           if (data.status === 'failed') {
-            setState({
-              cls: 'payment-result--warning',
-              icon: '!',
-              title: 'Не удалось передать заказ',
-              text: `Оплата прошла, но мы не смогли передать заказ в систему ресторана. Позвоните: ${PHONE_HTML} — примем заказ вручную и сразу подтвердим.`,
-              actions: `<a href="tel:+78212291247" class="button">Позвонить</a><a href="/" class="button-secondary">На главную</a>`,
-            });
+            saveOrderTracking({ trackingId, status: 'failed', resolvedAt: Date.now() });
+            setState(failedState());
             stop();
             return;
           }
@@ -302,7 +316,54 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setTimeout(poll, 500);
+  };
+
+  // Handle return from YooKassa payment page
+  const params = new URLSearchParams(window.location.search);
+  const paymentStatus = params.get('payment');
+  const trackingId = params.get('id');
+
+  if (paymentStatus === 'success' || paymentStatus === 'error') {
+    if (paymentStatus === 'success') {
+      localStorage.removeItem('cart');
+    }
+
+    if (paymentStatus === 'error') {
+      clearOrderTracking();
+      runPaymentStatusFlow(null, { immediateStatus: 'error' });
+      return;
+    }
+
+    if (!trackingId) {
+      runPaymentStatusFlow(null, { immediateStatus: 'paid' });
+      return;
+    }
+
+    runPaymentStatusFlow(trackingId);
     return;
+  }
+
+  // Returning visitor with no payment params in the URL: resume tracking the
+  // last order from localStorage instead of leaving them guessing.
+  const storedOrder = loadOrderTracking();
+  if (storedOrder && storedOrder.trackingId) {
+    const age = Date.now() - (storedOrder.createdAt || 0);
+    if (storedOrder.status && storedOrder.status !== 'pending') {
+      const stillFresh = Date.now() - (storedOrder.resolvedAt || 0) < ORDER_TRACKING_RESOLVED_SHOW_MS;
+      clearOrderTracking();
+      if (stillFresh) {
+        runPaymentStatusFlow(storedOrder.trackingId, {
+          immediateStatus: storedOrder.status,
+          immediateOrderNumber: storedOrder.orderNumber,
+        });
+        return;
+      }
+    } else if (age < ORDER_TRACKING_PENDING_RESUME_MS) {
+      runPaymentStatusFlow(storedOrder.trackingId);
+      return;
+    } else {
+      clearOrderTracking();
+    }
   }
 
   renderSummary();
@@ -558,6 +619,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!result.confirmationUrl) {
         throw new Error('Сервер не вернул ссылку для оплаты.');
+      }
+
+      if (result.trackingId) {
+        saveOrderTracking({ trackingId: result.trackingId, status: 'pending', createdAt: Date.now() });
       }
 
       window.location.href = result.confirmationUrl;

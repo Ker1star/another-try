@@ -208,6 +208,7 @@ def handle_webhook(body: bytes, *, remote_ip: str) -> dict:
         raise
 
     pending.status = 'paid'
+    pending.order_number = str(result.get('orderNumber') or result.get('number') or '') or None
     pending.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     logger.info("SBIS order created for payment_id=%s", payment_id)

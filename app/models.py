@@ -8,6 +8,7 @@ class PendingOrder(db.Model):
     payment_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
     tracking_id = db.Column(db.String(36), unique=True, nullable=True, index=True)
     status = db.Column(db.String(20), default='pending', nullable=False, index=True)
+    order_number = db.Column(db.String(20), nullable=True)
     error = db.Column(db.Text, nullable=True)
     payload_json = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

@@ -540,6 +540,8 @@ def payment_status_route(tracking_id):
     if not pending:
         return jsonify({'status': 'unknown'}), 404
     response = {'status': pending.status}
+    if pending.order_number:
+        response['orderNumber'] = pending.order_number
     if pending.status == 'failed' and pending.error:
         response['error'] = pending.error
     return jsonify(response)
