@@ -512,6 +512,7 @@ def payment_webhook_route():
         result = handle_webhook(request.get_data(), remote_ip=remote_ip)
     except PermissionError as exc:
         current_app.logger.warning("Webhook rejected: %s", exc)
+        send_telegram(f'🚨 *Marta: вебхук ЮКассы отклонён (недоверенный IP)*\n`{exc}`\n\nВозможно, ЮКасса обновила диапазон IP — проверьте `_YOOKASSA_NETWORKS` в payment.py.')
         return jsonify({'error': 'Forbidden'}), 403
     except ValueError as exc:
         current_app.logger.error("Webhook payload error: %s", exc)
