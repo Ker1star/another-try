@@ -944,7 +944,11 @@ button {
 
 .reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  /* transform: none, а не translateY(0) — тот же результат на экране,
+     но не создаёт свой стек наложения, который бы запирал z-index
+     дочерних элементов (например, бейджа корзины на карточке блюда)
+     ниже других зафиксированных элементов страницы. */
+  transform: none;
 }
 
 .reveal.delay-1 {

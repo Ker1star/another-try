@@ -160,6 +160,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         image.onerror = () => { image.onerror = null; image.src = fallbackImage; };
         media.appendChild(image);
 
+        if (interactiveMode && allowAddToCart) {
+          card.dataset.dishId = String(dish.id);
+          const cartBadge = document.createElement('span');
+          cartBadge.className = 'menu-item-cart-badge';
+          cartBadge.hidden = true;
+          media.appendChild(cartBadge);
+        }
+
         const info = document.createElement('div');
         info.className = 'info';
 
@@ -325,6 +333,7 @@ function initCart() {
   const openButton = document.getElementById('cartBtn');
   const openMobileButton = document.getElementById('cartBtnMobile');
   const closeButton = document.getElementById('closeCart');
+  const continueButton = document.getElementById('continueShoppingBtn');
   const list = document.getElementById('cartList');
   const total = document.getElementById('cartTotal');
   const checkout = document.getElementById('checkoutBtn');
@@ -353,6 +362,21 @@ function initCart() {
     sidebar?.classList.remove('open');
     document.body.classList.remove('cart-open');
     document.body.style.overflow = '';
+  };
+
+  const syncCardBadges = () => {
+    document.querySelectorAll('.menu-item[data-dish-id]').forEach(card => {
+      const badge = card.querySelector('.menu-item-cart-badge');
+      if (!badge) return;
+      const cartItem = state.find(item => String(item.id) === card.dataset.dishId);
+      const qty = cartItem?.qty || 0;
+      if (qty > 0) {
+        badge.textContent = `${qty} в корзине`;
+        badge.hidden = false;
+      } else {
+        badge.hidden = true;
+      }
+    });
   };
 
   const render = () => {
@@ -385,8 +409,14 @@ function initCart() {
       minus.type = 'button';
       minus.className = 'cart-qty';
       minus.textContent = '−';
+      minus.setAttribute('aria-label', (item.qty || 1) <= 1 ? `Удалить ${item.name}` : 'Уменьшить количество');
       minus.addEventListener('click', () => {
-        item.qty = Math.max(1, (item.qty || 1) - 1);
+        const nextQty = (item.qty || 1) - 1;
+        if (nextQty <= 0) {
+          state.splice(index, 1);
+        } else {
+          item.qty = nextQty;
+        }
         persist();
       });
 
@@ -461,6 +491,8 @@ function initCart() {
         stickyCart.hidden = true;
       }
     }
+
+    syncCardBadges();
   };
 
   const persist = () => {
@@ -494,6 +526,7 @@ function initCart() {
   openMobileButton?.addEventListener('click', openCart);
   stickyCart?.addEventListener('click', openCart);
   closeButton?.addEventListener('click', closeCart);
+  continueButton?.addEventListener('click', closeCart);
   overlay?.addEventListener('click', closeCart);
 
   checkout.addEventListener('click', () => {
