@@ -136,6 +136,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- Промокоды ---
+  const promoForm = document.getElementById('promoForm');
+  const promoStatus = document.getElementById('promoStatus');
+  const promoList = document.getElementById('promoList');
+
+  const setPromoStatus = (msg, kind) => {
+    if (!promoStatus) return;
+    promoStatus.textContent = msg || '';
+    promoStatus.className = kind || '';
+  };
+
+  const renderPromoList = (promoCodes) => {
+    if (!promoList) return;
+    if (!promoCodes.length) {
+      promoList.textContent = 'Промокодов пока нет.';
+      return;
+    }
+    const rows = promoCodes.map((p) => {
+      const value = p.discountType === 'percent' ? `${p.discountValue}%` : `${p.discountValue} ₽`;
+      const min = p.minOrderAmount != null ? `от ${p.minOrderAmount} ₽` : '—';
+      const until = p.validUntil ? p.validUntil.slice(0, 10) : '—';
+      const usage = `${p.timesUsed}${p.usageLimit != null ? ` / ${p.usageLimit}` : ''}`;
+      return `<tr>
+        <td><strong>${escapeHtml(p.code)}</strong></td>
+        <td>${value}</td>
+        <td>${min}</td>
+        <td>${until}</td>
+        <td>${usage}</td>
+        <td>${p.maxUsesPerCustomer}× на клиента</td>
+        <td><button class="promo-toggle ${p.isActive ? 'is-active' : 'is-off'}" data-id="${p.id}">${p.isActive ? 'активен' : 'выключен'}</button></td>
+      </tr>`;
+    }).join('');
+    promoList.innerHTML = `<table><thead><tr>
+      <th>код</th><th>скидка</th><th>мин. сумма</th><th>до</th><th>использован</th><th>лимит</th><th></th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+  };
+
+  const loadPromoCodes = async () => {
+    try {
+      const resp = await fetch('/api/admin/promo');
+      if (!resp.ok) { promoList.textContent = '—'; return; }
+      const data = await resp.json();
+      renderPromoList(data.promoCodes || []);
+    } catch (e) {
+      promoList.textContent = '—';
+    }
+  };
+
+  promoForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setPromoStatus('Создаю…');
+    const body = {
+      code: document.getElementById('promoCodeInput').value.trim(),
+      discountType: document.getElementById('promoTypeInput').value,
+      discountValue: document.getElementById('promoValueInput').value,
+      minOrderAmount: document.getElementById('promoMinOrderInput').value || null,
+      validUntil: document.getElementById('promoValidUntilInput').value || null,
+      usageLimit: document.getElementById('promoUsageLimitInput').value || null,
+      maxUsesPerCustomer: document.getElementById('promoMaxPerCustomerInput').value || 1,
+    };
+    try {
+      const resp = await fetch('/api/admin/promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result.error || 'Не удалось создать промокод.');
+      setPromoStatus(`Промокод ${result.promoCode.code} создан ✓`, 'ok');
+      promoForm.reset();
+      document.getElementById('promoMaxPerCustomerInput').value = 1;
+      loadPromoCodes();
+    } catch (err) {
+      setPromoStatus(err.message, 'err');
+    }
+  });
+
+  promoList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button.promo-toggle');
+    if (!btn) return;
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`/api/admin/promo/${btn.dataset.id}/toggle`, { method: 'POST' });
+      if (!resp.ok) throw new Error();
+      loadPromoCodes();
+    } catch (e) {
+      setPromoStatus('Не удалось переключить промокод.', 'err');
+      btn.disabled = false;
+    }
+  });
+
   loadMenu();
   loadOrders();
+  loadPromoCodes();
 });

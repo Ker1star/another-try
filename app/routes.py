@@ -2,12 +2,14 @@ import hashlib
 import json
 import os
 import time
+from datetime import datetime, timezone
 
 from flask import Blueprint, Response, abort, current_app, jsonify, request, send_file, session
 import requests
 
 from app import db
-from app.models import Category, MenuItem, PendingOrder
+from app.models import Category, MenuItem, PendingOrder, PromoCode, PromoRedemption
+from app.services import promo as promo_service
 from app.services.auth import auth as fetch_token
 from app.services.delivery_hours import (
     get_delivery_status,
@@ -300,6 +302,148 @@ def admin_orders_route():
             'address': ', '.join(x for x in [addr.get('street'), addr.get('house')] if x),
         })
     return jsonify({'orders': out})
+
+
+def _serialize_promo(promo):
+    return {
+        'id': promo.id,
+        'code': promo.code,
+        'discountType': promo.discount_type,
+        'discountValue': float(promo.discount_value),
+        'minOrderAmount': float(promo.min_order_amount) if promo.min_order_amount is not None else None,
+        'validFrom': promo.valid_from.isoformat() if promo.valid_from else None,
+        'validUntil': promo.valid_until.isoformat() if promo.valid_until else None,
+        'usageLimit': promo.usage_limit,
+        'maxUsesPerCustomer': promo.max_uses_per_customer,
+        'isActive': bool(promo.is_active),
+        'timesUsed': PromoRedemption.query.filter_by(promo_code_id=promo.id).count(),
+        'createdAt': promo.created_at.isoformat() if promo.created_at else None,
+    }
+
+
+@api_bp.route('/admin/promo', methods=['GET'])
+def admin_promo_list_route():
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    promos = PromoCode.query.order_by(PromoCode.created_at.desc()).all()
+    return jsonify({'promoCodes': [_serialize_promo(p) for p in promos]})
+
+
+@api_bp.route('/admin/promo', methods=['POST'])
+def admin_promo_create_route():
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    payload = request.get_json(silent=True) or {}
+    code = (payload.get('code') or '').strip().upper()
+    if not code:
+        return jsonify({'error': 'Укажите код промокода.'}), 400
+    if PromoCode.query.filter(db.func.upper(PromoCode.code) == code).first():
+        return jsonify({'error': 'Такой код уже существует.'}), 400
+
+    discount_type = payload.get('discountType')
+    if discount_type not in ('percent', 'fixed'):
+        return jsonify({'error': 'Тип скидки — percent или fixed.'}), 400
+
+    try:
+        discount_value = float(payload.get('discountValue'))
+        if discount_value <= 0:
+            raise ValueError
+        if discount_type == 'percent' and discount_value > 100:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Некорректная величина скидки.'}), 400
+
+    min_order_raw = payload.get('minOrderAmount')
+    valid_until_raw = (payload.get('validUntil') or '').strip()
+    usage_limit_raw = payload.get('usageLimit')
+    max_per_customer_raw = payload.get('maxUsesPerCustomer')
+
+    valid_until = None
+    if valid_until_raw:
+        try:
+            valid_until = datetime.fromisoformat(valid_until_raw)
+        except ValueError:
+            return jsonify({'error': 'Некорректная дата окончания действия.'}), 400
+        if valid_until.tzinfo is None:
+            # <input type="date"> присылает только дату — считаем код действующим
+            # по конец указанного дня, а не с полуночи.
+            valid_until = valid_until.replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+
+    try:
+        min_order_amount = float(min_order_raw) if min_order_raw not in (None, '') else None
+        usage_limit = int(usage_limit_raw) if usage_limit_raw not in (None, '') else None
+        max_uses_per_customer = int(max_per_customer_raw) if max_per_customer_raw not in (None, '') else 1
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Некорректные числовые ограничения.'}), 400
+
+    promo = PromoCode(
+        code=code,
+        discount_type=discount_type,
+        discount_value=discount_value,
+        min_order_amount=min_order_amount,
+        valid_until=valid_until,
+        usage_limit=usage_limit,
+        max_uses_per_customer=max_uses_per_customer,
+        is_active=True,
+    )
+    db.session.add(promo)
+    db.session.commit()
+    return jsonify({'status': 'ok', 'promoCode': _serialize_promo(promo)})
+
+
+@api_bp.route('/admin/promo/<int:promo_id>/toggle', methods=['POST'])
+def admin_promo_toggle_route(promo_id):
+    unauth = _require_admin()
+    if unauth:
+        return unauth
+    db_unavailable = _require_database()
+    if db_unavailable:
+        return db_unavailable
+
+    promo = PromoCode.query.get(promo_id)
+    if not promo:
+        return jsonify({'error': 'Промокод не найден.'}), 404
+    promo.is_active = not promo.is_active
+    db.session.commit()
+    return jsonify({'status': 'ok', 'isActive': promo.is_active})
+
+
+@api_bp.route('/promo/validate', methods=['POST'])
+def promo_validate_route():
+    """Публичная лёгкая проверка для мгновенной обратной связи в корзине.
+    Авторитетная проверка и применение — внутри create_payment."""
+    unavailable_response = _require_database()
+    if unavailable_response:
+        return unavailable_response
+
+    payload = request.get_json(silent=True) or {}
+    code = (payload.get('code') or '').strip()
+    if not code:
+        return jsonify({'error': 'Введите промокод.'}), 400
+
+    try:
+        subtotal = calculate_order_total(payload.get('items') or [])
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+    phone = (payload.get('phone') or '').strip() or None
+    try:
+        promo = promo_service.validate_promo(code, subtotal, phone=phone)
+    except promo_service.PromoError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+    discount = promo_service.compute_discount(promo, subtotal)
+    return jsonify({'valid': True, 'code': promo.code, 'discount': float(discount)})
 
 
 @api_bp.route('/menu/delivery-availability', methods=['POST'])

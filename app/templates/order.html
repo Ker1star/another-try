@@ -32,6 +32,14 @@
     .delivery-zone-note.is-ok { color: #1e7a3d; }
     .summary-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; color: #4a4a4a; }
     .summary-line small { color: #9a9a9a; font-weight: 500; }
+    .summary-line--discount { color: #1e7a3d; }
+    .summary-line--discount small { color: #1e7a3d; opacity: .75; }
+    .promo-row { display: flex; gap: 8px; margin-top: 16px; }
+    .promo-row input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid #e0ded7; font-size: .92rem; text-transform: uppercase; }
+    .promo-row .button-secondary { flex: none; padding: 10px 16px; }
+    .promo-message { margin: 8px 0 0; font-size: .85rem; }
+    .promo-message.is-error { color: #c0392b; }
+    .promo-message.is-ok { color: #1e7a3d; }
     .addr-suggest { position: absolute; left: 0; right: 0; top: 100%; z-index: 30; margin: 4px 0 0; padding: 4px; list-style: none; background: #fff; border: 1px solid #e0ded7; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); max-height: 240px; overflow-y: auto; }
     .addr-suggest li { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: .9rem; }
     .addr-suggest li:hover, .addr-suggest li.is-active { background: #f3f1ea; }
@@ -207,9 +215,20 @@
             <h2>Состав заказа</h2>
             <div id="orderSummary" hidden>
               <ul id="orderItemsList" class="order-summary-list"></ul>
+
+              <div class="promo-row">
+                <input type="text" id="promoInput" placeholder="Промокод" autocomplete="off">
+                <button type="button" class="button-secondary" id="promoApplyBtn">Применить</button>
+              </div>
+              <p id="promoMessage" class="promo-message" hidden></p>
+
               <div class="summary-line">
                 <span>Блюда</span>
                 <strong id="itemsTotal">0 ₽</strong>
+              </div>
+              <div class="summary-line summary-line--discount" id="discountRow" hidden>
+                <span>Скидка <small id="promoAppliedCode"></small></span>
+                <strong id="discountValue">−0 ₽</strong>
               </div>
               <div class="summary-line" id="deliveryCostRow" hidden>
                 <span>Доставка <small id="deliveryEta"></small></span>

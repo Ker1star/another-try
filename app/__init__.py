@@ -58,6 +58,10 @@ def _ensure_runtime_schema(connection=None):
             alter_statements.append("CREATE INDEX IF NOT EXISTS ix_pending_orders_status ON pending_orders (status)")
         if 'order_number' not in cols:
             alter_statements.append("ALTER TABLE pending_orders ADD COLUMN order_number VARCHAR(20)")
+        if 'promo_code' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN promo_code VARCHAR(32)")
+        if 'discount_amount' not in cols:
+            alter_statements.append("ALTER TABLE pending_orders ADD COLUMN discount_amount NUMERIC(10, 2)")
         if 'error' not in cols:
             alter_statements.append("ALTER TABLE pending_orders ADD COLUMN error TEXT")
         if 'updated_at' not in cols:

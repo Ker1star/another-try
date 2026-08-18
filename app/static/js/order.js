@@ -25,6 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let itemsTotal = 0;
   let deliveryQuote = null;   // last /api/delivery/quote response, or null
+  let appliedPromo = null;    // { code, discount } | null — see promo-код section below
+
+  const promoInput = document.getElementById('promoInput');
+  const promoApplyBtn = document.getElementById('promoApplyBtn');
+  const promoMessage = document.getElementById('promoMessage');
+  const discountRow = document.getElementById('discountRow');
+  const discountValueEl = document.getElementById('discountValue');
+  const promoAppliedCodeEl = document.getElementById('promoAppliedCode');
 
   const getServiceType = () => {
     const checked = serviceInputs.find((input) => input.checked);
@@ -32,12 +40,65 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateTotals = () => {
-    let grand = itemsTotal;
+    let grand = itemsTotal - (appliedPromo?.discount || 0);
     if (getServiceType() === 'delivery' && deliveryQuote && deliveryQuote.found && deliveryQuote.inZone) {
       grand += Number(deliveryQuote.deliveryCost) || 0;
     }
-    if (totalEl) totalEl.textContent = `${grand.toFixed(0)} ₽`;
+    if (totalEl) totalEl.textContent = `${Math.max(0, grand).toFixed(0)} ₽`;
   };
+
+  const showPromoMessage = (text, kind) => {
+    if (!promoMessage) return;
+    promoMessage.textContent = text || '';
+    promoMessage.className = `promo-message${kind ? ` is-${kind}` : ''}`;
+    promoMessage.hidden = !text;
+  };
+
+  const clearAppliedPromo = () => {
+    appliedPromo = null;
+    if (discountRow) discountRow.hidden = true;
+    updateTotals();
+  };
+
+  promoApplyBtn?.addEventListener('click', async () => {
+    const code = (promoInput?.value || '').trim();
+    if (!code) {
+      showPromoMessage('Введите промокод.', 'error');
+      return;
+    }
+    promoApplyBtn.disabled = true;
+    promoApplyBtn.textContent = 'Проверяем…';
+    showPromoMessage('');
+    try {
+      const response = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          items: cartItemsPayload(),
+          phone: form?.phone?.value?.trim() || '',
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.valid) {
+        clearAppliedPromo();
+        showPromoMessage(result.error || 'Не удалось применить промокод.', 'error');
+        return;
+      }
+      appliedPromo = { code: result.code, discount: Number(result.discount) || 0 };
+      if (discountRow) discountRow.hidden = false;
+      if (discountValueEl) discountValueEl.textContent = `−${appliedPromo.discount.toFixed(0)} ₽`;
+      if (promoAppliedCodeEl) promoAppliedCodeEl.textContent = `(${appliedPromo.code})`;
+      showPromoMessage(`Промокод применён: −${appliedPromo.discount.toFixed(0)} ₽`, 'ok');
+      updateTotals();
+    } catch (e) {
+      clearAppliedPromo();
+      showPromoMessage('Не удалось проверить промокод. Попробуйте ещё раз.', 'error');
+    } finally {
+      promoApplyBtn.disabled = false;
+      promoApplyBtn.textContent = 'Применить';
+    }
+  });
 
   // Block checkout only for definitive delivery problems; unknown/degraded states
   // pass through and are re-validated (and possibly degraded) on the server.
@@ -589,6 +650,10 @@ document.addEventListener('DOMContentLoaded', () => {
         qty: item.qty || 1,
       })),
     };
+
+    if (appliedPromo?.code) {
+      payload.promoCode = appliedPromo.code;
+    }
 
     if (service === 'delivery') {
       payload.address = {

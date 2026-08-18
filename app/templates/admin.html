@@ -33,6 +33,14 @@
     th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid #f0efe9; }
     th { background: #faf9f5; }
     h2 { font-size: 1.1rem; margin-top: 28px; }
+    .promo-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .promo-form input, .promo-form select { padding: 8px 10px; border: 1px solid #d8d6cd; border-radius: 8px; font-size: .85rem; }
+    .promo-form input[type="text"] { width: 110px; }
+    .promo-form input[type="number"] { width: 100px; }
+    .promo-form button { margin: 0; padding: 8px 16px; }
+    .promo-toggle { padding: 4px 10px; border-radius: 999px; border: 1px solid #d8d6cd; background: #fff; cursor: pointer; font-size: .78rem; }
+    .promo-toggle.is-active { background: #1e7a3d; color: #fff; border-color: #1e7a3d; }
+    .promo-toggle.is-off { background: #999; color: #fff; border-color: #999; }
   </style>
 </head>
 <body>
@@ -62,6 +70,23 @@
     </div>
     <p style="font-size:.85rem;color:#999">Стрелками меняй порядок, галочкой «скрыть» убирай с сайта. Имена и цены приходят из Saby — тут не редактируются. Сохраняй до переключения вкладки. Порядок/скрытие у позиций, которые есть и в меню, и в доставке — общие.</p>
     <div id="menuEditor">Загрузка…</div>
+
+    <h2>Промокоды</h2>
+    <form id="promoForm" class="promo-form">
+      <input type="text" id="promoCodeInput" placeholder="КОД" required maxlength="32" style="text-transform:uppercase">
+      <select id="promoTypeInput">
+        <option value="percent">%</option>
+        <option value="fixed">₽</option>
+      </select>
+      <input type="number" id="promoValueInput" placeholder="Величина" required min="0.01" step="0.01">
+      <input type="number" id="promoMinOrderInput" placeholder="От суммы (необязательно)" min="0" step="1">
+      <input type="date" id="promoValidUntilInput" title="Действует до (необязательно)">
+      <input type="number" id="promoUsageLimitInput" placeholder="Лимит использований (необязательно)" min="1" step="1">
+      <input type="number" id="promoMaxPerCustomerInput" placeholder="Раз на клиента" min="1" step="1" value="1">
+      <button type="submit" class="btn">Создать</button>
+    </form>
+    <div id="promoStatus"></div>
+    <div id="promoList">Загрузка…</div>
 
     <h2>Последние заказы</h2>
     <div id="ordersLog">Загрузка…</div>

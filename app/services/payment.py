@@ -2,12 +2,14 @@ import json
 import logging
 import os
 import uuid
+from decimal import Decimal
 from ipaddress import ip_address, ip_network
 
 from yookassa import Configuration, Payment
 
 from app import db
 from app.models import PendingOrder
+from app.services import promo as promo_service
 from app.services.order import (
     PrestoOrderError,
     _load_menu_items,
@@ -64,7 +66,10 @@ def _build_receipt(payload: dict, menu_map: dict, delivery_cost: float = 0.0) ->
     """Build YooKassa receipt object for 54-FZ fiscalization.
 
     The receipt items must sum to the charged amount, so the delivery line is
-    included here whenever a delivery fee is charged.
+    included here whenever a delivery fee is charged. If an item carries a
+    'price' override (used to apply a promo-code discount — see
+    apply_promo_to_items), that price is used instead of the DB price, same
+    convention as _build_nomenclatures in order.py.
     """
     raw_items = payload.get('items') or []
     phone = _normalize_phone_e164((payload.get('phone') or '').strip())
@@ -80,7 +85,7 @@ def _build_receipt(payload: dict, menu_map: dict, delivery_cost: float = 0.0) ->
             continue
         menu_item = menu_map[item['id']]
         qty = max(1, int(item.get('qty') or 1))
-        price = float(menu_item.price or 0)
+        price = float(item['price']) if item.get('price') is not None else float(menu_item.price or 0)
         items.append({
             'description': menu_item.name[:128],
             'quantity': f'{qty:.3f}',
@@ -103,6 +108,42 @@ def _build_receipt(payload: dict, menu_map: dict, delivery_cost: float = 0.0) ->
     return {'customer': customer, 'items': items}
 
 
+def _apply_promo(raw_items: list, menu_map: dict, payload: dict, subtotal: float):
+    """Validates payload['promoCode'] (if any) and mutates raw_items in place,
+    setting item['price'] to the discounted per-unit price. Both the YooKassa
+    receipt (_build_receipt) and the SBIS order (_build_nomenclatures in
+    order.py) already prefer item['price'] over the DB price when present, so
+    this one mutation is enough to keep the charge, the fiscal receipt and the
+    kassa order all consistent.
+
+    Returns (promo_or_None, actual_discount: Decimal).
+    """
+    code = (payload.get('promoCode') or '').strip()
+    if not code:
+        return None, Decimal('0')
+
+    phone = (payload.get('phone') or '').strip() or None
+    promo = promo_service.validate_promo(code, subtotal, phone=phone)
+    nominal_discount = promo_service.compute_discount(promo, subtotal)
+
+    lines = [
+        {
+            'key': item['id'],
+            'qty': max(1, int(item.get('qty') or 1)),
+            'unit_price': Decimal(str(menu_map[item['id']].price or 0)),
+        }
+        for item in raw_items
+        if item.get('id') is not None
+    ]
+    new_unit_prices, actual_discount = promo_service.apply_discount_to_lines(lines, nominal_discount)
+
+    for item in raw_items:
+        if item.get('id') in new_unit_prices:
+            item['price'] = float(new_unit_prices[item['id']])
+
+    return promo, actual_discount
+
+
 def create_payment(payload: dict, *, base_url: str) -> dict:
     _configure()
 
@@ -111,19 +152,27 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
     # _load_menu_items also validates availability for delivery.
     menu_map = _load_menu_items(raw_items)
 
-    total = sum(
+    subtotal = sum(
         float(menu_map[item['id']].price or 0) * max(1, int(item.get('qty') or 1))
         for item in raw_items
         if item.get('id') is not None
     )
-    if total <= 0:
+    if subtotal <= 0:
         raise ValueError('Сумма заказа должна быть больше нуля.')
+
+    # Промокод (если есть) проверяется и применяется здесь — раньше, чем
+    # цены попадут в чек ЮKassa и в сохранённый payload для будущего заказа
+    # в Saby. См. _apply_promo и app/services/promo.py.
+    promo, discount_amount = _apply_promo(raw_items, menu_map, payload, subtotal)
+    total = subtotal - float(discount_amount)
 
     # Full order validation (address, phone, zone, min-order) — payment type forced to card.
     # The returned payload carries the server-computed delivery cost we must charge.
     order_payload = build_order_payload({**payload, 'paymentType': 'card'}, base_url=base_url)
     delivery_cost = float((order_payload.get('delivery') or {}).get('deliveryCost') or 0)
     charge_total = total + delivery_cost
+    if charge_total <= 0:
+        raise ValueError('Сумма заказа со скидкой должна быть больше нуля.')
 
     tracking_id = str(uuid.uuid4())
 
@@ -146,14 +195,16 @@ def create_payment(payload: dict, *, base_url: str) -> dict:
         payment_id=payment.id,
         tracking_id=tracking_id,
         status='pending',
+        promo_code=promo.code if promo else None,
+        discount_amount=discount_amount if promo else None,
         payload_json=json.dumps(payload, ensure_ascii=False),
     )
     db.session.add(pending)
     db.session.commit()
 
     logger.info(
-        "Payment created: id=%s tracking=%s items=%.2f delivery=%.2f total=%.2f",
-        payment.id, tracking_id, total, delivery_cost, charge_total,
+        "Payment created: id=%s tracking=%s items=%.2f discount=%s delivery=%.2f total=%.2f promo=%s",
+        payment.id, tracking_id, subtotal, discount_amount, delivery_cost, charge_total, promo.code if promo else None,
     )
     return {
         'paymentId': payment.id,
@@ -210,6 +261,20 @@ def handle_webhook(body: bytes, *, remote_ip: str) -> dict:
     pending.status = 'paid'
     pending.order_number = str(result.get('orderNumber') or result.get('number') or '') or None
     pending.updated_at = datetime.now(timezone.utc)
+
+    # Промокод считается использованным только на успешном заказе — не на
+    # попытке оплаты, — иначе брошенные на середине оплаты корзины съедали
+    # бы лимит использований впустую.
+    if pending.promo_code:
+        promo = promo_service.find_promo(pending.promo_code)
+        if promo:
+            promo_service.record_redemption(
+                promo,
+                phone=_normalize_phone_e164((payload.get('phone') or '').strip()),
+                discount_amount=pending.discount_amount or 0,
+                pending_order_id=pending.id,
+            )
+
     db.session.commit()
     logger.info("SBIS order created for payment_id=%s", payment_id)
 

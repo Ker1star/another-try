@@ -9,10 +9,46 @@ class PendingOrder(db.Model):
     tracking_id = db.Column(db.String(36), unique=True, nullable=True, index=True)
     status = db.Column(db.String(20), default='pending', nullable=False, index=True)
     order_number = db.Column(db.String(20), nullable=True)
+    promo_code = db.Column(db.String(32), nullable=True)
+    discount_amount = db.Column(db.Numeric(10, 2), nullable=True)
     error = db.Column(db.Text, nullable=True)
     payload_json = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+
+class PromoCode(db.Model):
+    __tablename__ = 'promo_codes'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(32), unique=True, nullable=False, index=True)
+    discount_type = db.Column(db.String(10), nullable=False)  # 'percent' | 'fixed'
+    discount_value = db.Column(db.Numeric(10, 2), nullable=False)
+    min_order_amount = db.Column(db.Numeric(10, 2), nullable=True)
+    valid_from = db.Column(db.DateTime(timezone=True), nullable=True)
+    valid_until = db.Column(db.DateTime(timezone=True), nullable=True)
+    usage_limit = db.Column(db.Integer, nullable=True)  # null = без ограничения
+    max_uses_per_customer = db.Column(db.Integer, nullable=False, default=1)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class PromoRedemption(db.Model):
+    """Факт применения промокода к успешно оформленному заказу.
+
+    Отдельная таблица, а не счётчик на PromoCode, — чтобы лимит "раз на
+    клиента" и общий лимит использований всегда были посчитаны от факта
+    (успешных заказов), а не от количества попыток оплаты.
+    """
+    __tablename__ = 'promo_redemptions'
+    id = db.Column(db.Integer, primary_key=True)
+    promo_code_id = db.Column(db.Integer, db.ForeignKey('promo_codes.id'), nullable=False, index=True)
+    pending_order_id = db.Column(db.Integer, db.ForeignKey('pending_orders.id'), nullable=True)
+    phone = db.Column(db.String(20), nullable=False, index=True)
+    discount_amount = db.Column(db.Numeric(10, 2), nullable=False)
+    redeemed_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    promo_code = db.relationship('PromoCode')
+    pending_order = db.relationship('PendingOrder')
 
 
 class Reservation(db.Model):
